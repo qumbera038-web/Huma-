@@ -20,8 +20,15 @@ import {
   AlertTriangle,
   RotateCcw,
   CheckCircle2,
-  Trash2
+  Trash2,
+  QrCode,
+  Copy,
+  Check,
+  X,
+  ShieldCheck,
+  ExternalLink
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { InvoiceReceiptModal } from "./InvoiceReceiptModal";
 
 interface SalesReportsProps {
@@ -45,6 +52,8 @@ export const SalesReports: React.FC<SalesReportsProps> = ({
   const [selectedBranchFilter, setSelectedBranchFilter] = useState<string>("all");
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>("all");
   const [viewInvoice, setViewInvoice] = useState<Invoice | null>(null);
+  const [selectedQrInvoice, setSelectedQrInvoice] = useState<Invoice | null>(null);
+  const [copiedQrData, setCopiedQrData] = useState(false);
 
   // Cancellation Modal state
   const [cancelTargetInvoice, setCancelTargetInvoice] = useState<Invoice | null>(null);
@@ -701,6 +710,18 @@ export const SalesReports: React.FC<SalesReportsProps> = ({
                         <td className="py-3 px-4 text-center">
                           <div className="flex items-center justify-center gap-1.5">
                             <button
+                              onClick={() => {
+                                setSelectedQrInvoice(inv);
+                                setCopiedQrData(false);
+                              }}
+                              className="px-2 py-1 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 text-xs font-semibold transition flex items-center gap-1"
+                              title="Invoice QR Code for Mobile Verification & Scanning"
+                            >
+                              <QrCode className="w-3.5 h-3.5 text-indigo-400" />
+                              <span>QR</span>
+                            </button>
+
+                            <button
                               onClick={() => setViewInvoice(inv)}
                               className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-1 ${
                                 isCancelled
@@ -846,6 +867,152 @@ export const SalesReports: React.FC<SalesReportsProps> = ({
           settings={settings}
           onClose={() => setViewInvoice(null)}
         />
+      )}
+
+      {/* Invoice QR Code Verification Modal */}
+      {selectedQrInvoice && (
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-indigo-500/40 rounded-3xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95 text-slate-200">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
+                  <QrCode className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-slate-100 text-sm flex items-center gap-1.5">
+                    <span>Invoice QR Verification</span>
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                      بل تصدیقی کوڈ
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    {selectedQrInvoice.invoiceNumber} • {new Date(selectedQrInvoice.date).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedQrInvoice(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/10 transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* QR Code Display Canvas */}
+            <div className="my-5 flex flex-col items-center justify-center">
+              <div className="p-3.5 bg-white rounded-2xl shadow-xl border-4 border-indigo-500/20">
+                <QRCodeSVG
+                  value={JSON.stringify({
+                    store: "Haider Pipe & Sanitary Store",
+                    invoice: selectedQrInvoice.invoiceNumber,
+                    date: selectedQrInvoice.date,
+                    customer: selectedQrInvoice.customerName,
+                    phone: selectedQrInvoice.customerPhone || "N/A",
+                    total: selectedQrInvoice.grandTotal,
+                    paid: selectedQrInvoice.amountPaid,
+                    due: selectedQrInvoice.balanceDue,
+                    status: selectedQrInvoice.status || "active",
+                    branch: selectedQrInvoice.branchName || "Main Branch",
+                    verifyUrl: typeof window !== "undefined" ? `${window.location.origin}/?inv=${selectedQrInvoice.invoiceNumber}` : ""
+                  })}
+                  size={160}
+                  level="M"
+                />
+              </div>
+              <div className="mt-2.5 text-center">
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-300 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Official Verified Bill • Haider Sanitary</span>
+                </span>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  موبائل کیمرے یا کسی بھی بارکوڈ ریڈر سے اسکین کر کے بل کی اصلیت چیک کریں
+                </p>
+              </div>
+            </div>
+
+            {/* Invoice Summary Box */}
+            <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-3.5 space-y-2 text-xs">
+              <div className="flex justify-between items-center text-slate-300">
+                <span>Customer (کسٹمر):</span>
+                <span className="font-bold text-slate-100">{selectedQrInvoice.customerName}</span>
+              </div>
+              <div className="flex justify-between items-center text-slate-300">
+                <span>Grand Total (کل بل):</span>
+                <span className="font-mono font-bold text-slate-100">
+                  {settings.currencySymbol} {selectedQrInvoice.grandTotal.toLocaleString()}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-slate-300">
+                <span>Amount Paid (وصول شدہ):</span>
+                <span className="font-mono font-bold text-emerald-400">
+                  {settings.currencySymbol} {selectedQrInvoice.amountPaid.toLocaleString()}
+                </span>
+              </div>
+              {selectedQrInvoice.balanceDue > 0 && (
+                <div className="flex justify-between items-center text-amber-300 bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-500/20">
+                  <span>Khata Due (بقایا ادھار):</span>
+                  <span className="font-mono font-bold">
+                    {settings.currencySymbol} {selectedQrInvoice.balanceDue.toLocaleString()}
+                  </span>
+                </div>
+              )}
+              <div className="flex justify-between items-center text-slate-400 text-[11px] pt-1 border-t border-slate-800/80">
+                <span>Cashier & Branch:</span>
+                <span className="font-medium text-slate-300">
+                  {selectedQrInvoice.cashierName} • {selectedQrInvoice.branchName || "Main HQ"}
+                </span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="mt-5 flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const verificationText = `Haider Sanitary Verified Invoice #${selectedQrInvoice.invoiceNumber}\nCustomer: ${selectedQrInvoice.customerName}\nDate: ${new Date(selectedQrInvoice.date).toLocaleDateString()}\nTotal: ${settings.currencySymbol} ${selectedQrInvoice.grandTotal}\nPaid: ${settings.currencySymbol} ${selectedQrInvoice.amountPaid}\nDue: ${settings.currencySymbol} ${selectedQrInvoice.balanceDue}`;
+                  navigator.clipboard.writeText(verificationText);
+                  setCopiedQrData(true);
+                  setTimeout(() => setCopiedQrData(false), 2500);
+                }}
+                className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+              >
+                {copiedQrData ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-emerald-300">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copy Info</span>
+                  </>
+                )}
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setViewInvoice(selectedQrInvoice);
+                    setSelectedQrInvoice(null);
+                  }}
+                  className="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-lg shadow-blue-600/20 cursor-pointer"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>View Receipt</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedQrInvoice(null)}
+                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition cursor-pointer"
+                >
+                  بند کریں
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

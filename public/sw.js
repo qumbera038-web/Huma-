@@ -1,10 +1,12 @@
 // Haider Sanitary POS - Service Worker for Offline Reliability
-const CACHE_NAME = 'haider-sanitary-pos-v1';
+const CACHE_NAME = 'haider-sanitary-pos-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/favicon.ico'
+  '/icon.svg',
+  '/icon-192.png',
+  '/icon-512.png'
 ];
 
 // Install Event

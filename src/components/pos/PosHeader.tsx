@@ -38,8 +38,12 @@ import {
   Scan,
   MoreVertical,
   Languages,
-  RefreshCw
+  RefreshCw,
+  ExternalLink,
+  FileDown,
+  QrCode
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 
 export type PosTab = "billing" | "inventory" | "khata" | "reports" | "branches" | "whatsapp_hub" | "attendance" | "ai_estimator" | "settings";
 
@@ -914,9 +918,34 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
                 </div>
               </div>
 
+              {/* QR Code Quick Scan & APK Download Option */}
+              <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-center gap-4">
+                <div className="p-1.5 bg-white rounded-lg shrink-0 shadow">
+                  <QRCodeSVG value={typeof window !== "undefined" ? window.location.href : ""} size={78} />
+                </div>
+                <div className="space-y-1">
+                  <div className="text-[11px] font-bold text-slate-100 flex items-center gap-1.5">
+                    <QrCode className="w-3.5 h-3.5 text-blue-400" />
+                    <span>موبائل کیمرے سے اسکین کریں</span>
+                  </div>
+                  <p className="text-[10px] text-slate-400 leading-tight">
+                    کیمرہ کیو آر کوڈ پر لائیں، لنک پر ٹیپ کریں اور ہوم اسکرین پر شامل کر لیں۔
+                  </p>
+                  <a
+                    href="https://www.pwabuilder.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-400 hover:text-amber-300 underline pt-0.5"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    <span>Download .APK file via PWABuilder</span>
+                  </a>
+                </div>
+              </div>
+
               {/* Step by step installation */}
               <div className="space-y-2.5">
-                <h4 className="font-semibold text-slate-200 text-xs">2. Mobile پر انسٹال کرنے کا آسان طریقہ:</h4>
+                <h4 className="font-semibold text-slate-200 text-xs">2. Mobile پر انسٹال کرنے کا طریقہ (WebAPK):</h4>
                 
                 <div className="bg-white/10/60 border border-slate-700/60 p-3 rounded-xl space-y-2">
                   <div className="flex items-start gap-2">
@@ -943,11 +972,20 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
 
               <div className="bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-xl flex items-center gap-2 text-emerald-300 text-[11px]">
                 <Download className="w-4 h-4 shrink-0" />
-                <span>اس کے بعد یہ ایپ کی طرح موبائل کی ہوم اسکرین پر ہمیشہ کے لیے آ جائے گی!</span>
+                <span>اس کے بعد یہ اصلی ایپ کی طرح موبائل کی ہوم اسکرین پر ہمیشہ کے لیے آ جائے گی!</span>
               </div>
             </div>
 
-            <div className="mt-5 flex justify-end">
+            <div className="mt-5 flex items-center justify-between">
+              <a
+                href="https://www.pwabuilder.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg text-[11px] font-bold flex items-center gap-1.5 transition"
+              >
+                <FileDown className="w-3.5 h-3.5" />
+                <span>Get APK (PWABuilder)</span>
+              </a>
               <button
                 onClick={() => setShowInstallModal(false)}
                 className="px-4 py-2 bg-white/10 hover:bg-slate-700 text-slate-200 rounded-xl font-semibold transition"

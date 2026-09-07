@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#0284c7" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Background Rounded Canvas -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+  <rect x="12" y="12" width="488" height="488" rx="100" fill="none" stroke="#334155" stroke-width="4" opacity="0.6"/>
+
+  <!-- Outer Glow Circle -->
+  <circle cx="256" cy="230" r="160" fill="#0284c7" opacity="0.08"/>
+
+  <!-- Pipe / Sanitary Ware Emblem -->
+  <g filter="url(#glow)">
+    <!-- Modern Luxury Faucet & Water Flow -->
+    <path d="M190 280 L190 190 C190 140 230 110 280 110 L310 110 C326 110 340 124 340 140 L340 170 C340 178 334 185 325 185 L295 185 C275 185 260 200 260 220 L260 280 Z" fill="url(#blueGrad)"/>
+    
+    <!-- Pipe Junction Base -->
+    <rect x="160" y="270" width="192" height="34" rx="8" fill="#475569"/>
+    <rect x="150" y="304" width="212" height="18" rx="6" fill="#334155"/>
+
+    <!-- Faucet Spout Stream / Droplet -->
+    <path d="M330 200 C330 200 350 230 350 245 C350 256 341 265 330 265 C319 265 310 256 310 245 C310 230 330 200 330 200 Z" fill="#38bdf8"/>
+    
+    <!-- Brand Initial H Accent -->
+    <path d="M220 350 L242 350 L242 380 L270 380 L270 350 L292 350 L292 420 L270 420 L270 396 L242 396 L242 420 L220 420 Z" fill="#ffffff"/>
+  </g>
+
+  <!-- Brand Typography -->
+  <text x="256" y="460" text-anchor="middle" fill="#94a3b8" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="700" letter-spacing="4">HAIDER SANITARY</text>
+</svg>

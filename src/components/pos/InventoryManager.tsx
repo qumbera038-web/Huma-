@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { Product, ProductCategory, StoreSettings } from "../../types";
 import { useLanguage } from "../../context/LanguageContext";
 import { ScannerModal } from "./ScannerModal";
+import { StockAlertDashboard } from "./StockAlertDashboard";
 import { 
   Plus, 
   Search, 
@@ -19,7 +20,9 @@ import {
   Sparkles,
   RefreshCw,
   Check,
-  ScanLine
+  ScanLine,
+  ArrowRight,
+  ClipboardList
 } from "lucide-react";
 
 interface InventoryManagerProps {
@@ -39,6 +42,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
   const [selectedBrand, setSelectedBrand] = useState<string>("All");
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [showStockAlertDashboard, setShowStockAlertDashboard] = useState(false);
 
   const [showBulkPriceModal, setShowBulkPriceModal] = useState(false);
   const [showScannerModal, setShowScannerModal] = useState(false);
@@ -327,94 +331,169 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
           </p>
         </div>
 
-        <div className="bg-glass border border-slate-800 p-4 rounded-2xl">
+        <div
+          onClick={() => setShowStockAlertDashboard(!showStockAlertDashboard)}
+          className={`p-4 rounded-2xl border transition cursor-pointer ${
+            showStockAlertDashboard
+              ? "bg-rose-950/50 border-rose-500/60 shadow-lg shadow-rose-950/40 ring-1 ring-rose-500/50"
+              : lowStockCount > 0
+              ? "bg-rose-950/20 border-rose-500/40 hover:border-rose-500/60 hover:bg-rose-950/30"
+              : "bg-glass border-slate-800 hover:border-slate-700"
+          }`}
+        >
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
             <span>{t('low_stock_alerts')}</span>
-            <AlertTriangle className="w-4 h-4 text-amber-400" />
+            <AlertTriangle className={`w-4 h-4 ${lowStockCount > 0 ? "text-rose-400 animate-pulse" : "text-amber-400"}`} />
           </div>
-          <p className="text-xl font-bold text-amber-400">
-            {lowStockCount} Items
-          </p>
+          <div className="flex items-baseline justify-between">
+            <p className="text-xl font-bold text-rose-300 font-mono">
+              {lowStockCount} Items
+            </p>
+            <span className="text-[10px] font-bold text-rose-400 hover:underline flex items-center gap-0.5">
+              {showStockAlertDashboard ? "ڈیش بورڈ بند کریں ✕" : "ری اسٹاک ڈیش بورڈ ➔"}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Main Table Card */}
-      <div className="bg-glass border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
-        {/* Controls Header */}
-        <div className="p-4 border-b border-slate-800 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-slate-950/40">
-          <div className="flex flex-1 items-center flex-wrap gap-2">
-            <div className="relative flex-1 min-w-[200px] max-w-md">
-              <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={t('search_inventory')}
-                className="w-full pl-9 pr-10 py-2 bg-glass border border-slate-700/80 rounded-xl text-xs text-slate-100 placeholder-slate-500 outline-none focus:border-blue-500"
-              />
-              <button
-                onClick={() => setShowScannerModal(true)}
-                className="absolute right-2 top-1.5 text-slate-400 hover:text-blue-400 transition bg-slate-800 p-1 rounded border border-slate-700"
-                title="Scan Barcode"
+      {/* Low Stock Reorder Notification Banner (shown when items need restocking and dashboard is closed) */}
+      {!showStockAlertDashboard && lowStockCount > 0 && (
+        <div className="bg-gradient-to-r from-rose-950/50 via-slate-900 to-amber-950/40 border border-rose-500/40 p-3.5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xl">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0">
+              <AlertTriangle className="w-4 h-4 animate-pulse" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-100 flex items-center gap-2">
+                <span>انتباہ: {lowStockCount} آئٹمز کا اسٹاک الرٹ کی حد سے نیچے آ چکا ہے!</span>
+                <span className="px-2 py-0.5 rounded text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/30 font-mono font-bold">
+                  {lowStockCount} SKUs Need Restock
+                </span>
+              </p>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                سپلائرز کے لیے ری اسٹاکنگ شیٹ پرنٹ کرنے یا آرڈر لسٹ ایکسل / واٹس ایپ ایکسپورٹ کرنے کے لیے الرٹ سینٹر کھولیں۔
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowStockAlertDashboard(true)}
+            className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-black rounded-xl transition shadow-lg shadow-rose-600/30 flex items-center gap-1.5 shrink-0 cursor-pointer"
+          >
+            <ClipboardList className="w-3.5 h-3.5" />
+            <span>ری اسٹاک ڈیش بورڈ کھولیں (Open Restock Hub)</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* If Stock Alert Dashboard is active, render it */}
+      {showStockAlertDashboard ? (
+        <StockAlertDashboard
+          products={products}
+          settings={settings}
+          onUpdateProducts={onUpdateProducts}
+          onClose={() => setShowStockAlertDashboard(false)}
+          onEditProduct={handleOpenEdit}
+        />
+      ) : (
+        /* Main Table Card */
+        <div className="bg-glass border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+          {/* Controls Header */}
+          <div className="p-4 border-b border-slate-800 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-slate-950/40">
+            <div className="flex flex-1 items-center flex-wrap gap-2">
+              <div className="relative flex-1 min-w-[200px] max-w-md">
+                <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder={t('search_inventory')}
+                  className="w-full pl-9 pr-10 py-2 bg-glass border border-slate-700/80 rounded-xl text-xs text-slate-100 placeholder-slate-500 outline-none focus:border-blue-500"
+                />
+                <button
+                  onClick={() => setShowScannerModal(true)}
+                  className="absolute right-2 top-1.5 text-slate-400 hover:text-blue-400 transition bg-slate-800 p-1 rounded border border-slate-700"
+                  title="Scan Barcode"
+                >
+                  <ScanLine className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <select
+                value={selectedBrand}
+                onChange={(e) => setSelectedBrand(e.target.value)}
+                className="px-3 py-2 bg-glass border border-slate-700/80 rounded-xl text-xs text-slate-300 outline-none"
               >
-                <ScanLine className="w-3.5 h-3.5" />
-              </button>
+                <option value="All">All Companies ({products.length})</option>
+                {uniqueBrands.map((b) => (
+                  <option key={b} value={b}>
+                    {b} ({products.filter((p) => p.brand === b).length})
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="px-3 py-2 bg-glass border border-slate-700/80 rounded-xl text-xs text-slate-300 outline-none"
+              >
+                <option value="All">{t('all_categories')}</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            <select
-              value={selectedBrand}
-              onChange={(e) => setSelectedBrand(e.target.value)}
-              className="px-3 py-2 bg-glass border border-slate-700/80 rounded-xl text-xs text-slate-300 outline-none"
-            >
-              <option value="All">All Companies ({products.length})</option>
-              {uniqueBrands.map((b) => (
-                <option key={b} value={b}>
-                  {b} ({products.filter((p) => p.brand === b).length})
-                </option>
-              ))}
-            </select>
+            <div className="flex items-center flex-wrap gap-2">
+              {/* Dedicated Restock Alerts Button */}
+              <button
+                type="button"
+                onClick={() => setShowStockAlertDashboard(true)}
+                className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl transition cursor-pointer ${
+                  lowStockCount > 0
+                    ? "bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 shadow-sm shadow-rose-950/30"
+                    : "bg-white/5 hover:bg-slate-700 text-slate-300 border border-slate-700"
+                }`}
+                title="Open Dedicated Stock Alert & Reorder Dashboard"
+              >
+                <AlertTriangle className={`w-3.5 h-3.5 ${lowStockCount > 0 ? "text-rose-400 animate-pulse" : ""}`} />
+                <span>الرٹ ڈیش بورڈ (Restock Hub)</span>
+                {lowStockCount > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-rose-600 text-white">
+                    {lowStockCount}
+                  </span>
+                )}
+              </button>
 
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3 py-2 bg-glass border border-slate-700/80 rounded-xl text-xs text-slate-300 outline-none"
-            >
-              <option value="All">{t('all_categories')}</option>
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
+              {/* Percentage & Company Price Adjuster Button */}
+              <button
+                onClick={() => setShowBulkPriceModal(true)}
+                className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-xl transition"
+              >
+                <Percent className="w-3.5 h-3.5" />
+                <span>Bulk Price Adjuster</span>
+              </button>
+
+              <button
+                onClick={exportCSV}
+                className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold bg-white/5 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl transition"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Export CSV</span>
+              </button>
+
+              <button
+                onClick={handleOpenAdd}
+                className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-md shadow-blue-600/30 transition"
+              >
+                <Plus className="w-4 h-4" />
+                <span>{t('add_item')}</span>
+              </button>
+            </div>
           </div>
-
-          <div className="flex items-center gap-2">
-            {/* Percentage & Company Price Adjuster Button */}
-            <button
-              onClick={() => setShowBulkPriceModal(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-xl transition"
-            >
-              <Percent className="w-3.5 h-3.5" />
-              <span>Bulk Price Adjuster</span>
-            </button>
-
-            <button
-              onClick={exportCSV}
-              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold bg-white/5 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl transition"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Export CSV</span>
-            </button>
-
-            <button
-              onClick={handleOpenAdd}
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-md shadow-blue-600/30 transition"
-            >
-              <Plus className="w-4 h-4" />
-              <span>{t('add_item')}</span>
-            </button>
-          </div>
-        </div>
 
         {/* Products Table */}
         <div className="overflow-x-auto">
@@ -507,6 +586,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
           </table>
         </div>
       </div>
+      )}
 
       {/* Bulk Price Adjuster Modal */}
       {showBulkPriceModal && (

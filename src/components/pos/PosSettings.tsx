@@ -32,8 +32,13 @@ import {
   Smartphone,
   Laptop,
   FileText,
-  Printer
+  Printer,
+  ExternalLink,
+  QrCode,
+  FileDown,
+  PackageCheck
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { exportAllDataBackup, resetAllData, AppTheme } from "../../utils/posStorage";
 import { AVATAR_PRESETS } from "../../data/posData";
 
@@ -292,6 +297,115 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
               <li>اس پر کلک کر کے <span className="font-bold text-white">"Install"</span> منتخب کریں۔</li>
               <li>کمپیوٹر کے ڈیسک ٹاپ پر پکا شارٹ کٹ بن جائے گا اور یہ سمارٹ اسکرین میں کھلے گا!</li>
             </ol>
+          </div>
+        </div>
+      </div>
+
+      {/* 📱 APK Download & Mobile App Generation Guide Card */}
+      <div className="bg-gradient-to-r from-amber-950/40 via-slate-900/90 to-amber-950/40 border border-amber-500/30 p-5 rounded-2xl shadow-xl space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+              <FileDown className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-slate-100 text-sm flex items-center gap-2">
+                <span>Android APK فائل ڈاؤن لوڈ اور موبائل انسٹالیشن گائیڈ (Download APK & Mobile App)</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                  Android & WebAPK
+                </span>
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                اگر آپ کے ایکسپورٹ زپ میں APK فائل نہیں ملی تو پریشان نہ ہوں! ویب پراجیکٹ سے موبائل میں حاصل کرنے کے ۳ آسان طریقے:
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <a
+              href="https://www.pwabuilder.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black rounded-xl text-xs flex items-center gap-1.5 transition shadow-lg shadow-amber-500/15"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>1-Click APK Generator (PWABuilder)</span>
+            </a>
+          </div>
+        </div>
+
+        {/* 3 Clear Options */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+          {/* Option 1: Chrome WebAPK (No APK download required) */}
+          <div className="p-4 bg-slate-950/80 border border-emerald-500/30 rounded-xl space-y-2 relative overflow-hidden">
+            <div className="absolute top-2 right-2">
+              <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                سب سے تیز اور آسان ⚡
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-emerald-400 font-bold">
+              <Smartphone className="w-4 h-4" />
+              <span>طریقہ ۱: ڈائریکٹ انسٹال (WebAPK)</span>
+            </div>
+            <p className="text-[11px] text-slate-300 leading-relaxed">
+              آپ کو مینوئل APK فائل انسٹال کرنے کی ضرورت ہی نہیں! اپنے فون پر یہ لائیو لنک کھولیں، کروم کے 3 ڈاٹس پر کلک کریں اور <strong>"Install app"</strong> دبائیں۔ اینڈرائیڈ فون خود بخود اصلی نیٹو ایپ بنا کر ہوم اسکرین پر لگا دیتا ہے!
+            </p>
+            <div className="pt-2 flex items-center justify-center">
+              <div className="p-2 bg-white rounded-lg shadow">
+                <QRCodeSVG value={typeof window !== "undefined" ? window.location.href : "https://ais-pre-gkemaqvfv3wdjnmzokoxzv-266806882346.asia-southeast1.run.app"} size={100} />
+              </div>
+            </div>
+            <p className="text-[10px] text-center text-slate-400">موبائل کیمرے سے کیو آر کوڈ اسکین کریں</p>
+          </div>
+
+          {/* Option 2: PWABuilder 1-Click APK */}
+          <div className="p-4 bg-slate-950/80 border border-amber-500/30 rounded-xl space-y-2">
+            <div className="flex items-center gap-2 text-amber-400 font-bold">
+              <PackageCheck className="w-4 h-4" />
+              <span>طریقہ ۲: PWABuilder سے APK فائل حاصل کریں</span>
+            </div>
+            <ol className="list-decimal pl-4 space-y-1.5 text-slate-300 text-[11px]">
+              <li>اس ایپ کا ویب لنک کاپی کریں:
+                <div className="mt-1 flex items-center gap-1">
+                  <input
+                    type="text"
+                    readOnly
+                    value={typeof window !== "undefined" ? window.location.href : ""}
+                    className="w-full px-2 py-1 bg-slate-900 border border-slate-700 rounded text-[10px] font-mono text-slate-300 select-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleCopyText(window.location.href, "apk-url")}
+                    className="px-2 py-1 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-[10px] rounded transition shrink-0 cursor-pointer"
+                  >
+                    {copiedSection === "apk-url" ? "Copied!" : "Copy"}
+                  </button>
+                </div>
+              </li>
+              <li><a href="https://www.pwabuilder.com" target="_blank" rel="noopener noreferrer" className="text-amber-400 underline font-bold">pwabuilder.com</a> پر جائیں اور یہ لنک پیسٹ کریں۔</li>
+              <li><strong>"Package for Android"</strong> بٹن دبائیں اور سائنڈ <strong>.apk</strong> فائل فوراً ڈاؤن لوڈ کر لیں!</li>
+            </ol>
+          </div>
+
+          {/* Option 3: Capacitor Android Studio */}
+          <div className="p-4 bg-slate-950/80 border border-slate-800 rounded-xl space-y-2">
+            <div className="flex items-center gap-2 text-sky-400 font-bold">
+              <Code2 className="w-4 h-4" />
+              <span>طریقہ ۳: Capacitor + Android Studio</span>
+            </div>
+            <p className="text-[11px] text-slate-300 leading-relaxed">
+              اگر آپ ڈویلپر ہیں اور خود APK کمپائل کرنا چاہتے ہیں:
+            </p>
+            <div className="bg-slate-900 p-2 rounded text-[10px] font-mono text-slate-300 border border-slate-800 space-y-1">
+              <div>npm i @capacitor/core @capacitor/android</div>
+              <div>npx cap init</div>
+              <div>npm run build</div>
+              <div>npx cap add android</div>
+              <div>npx cap open android</div>
+            </div>
+            <p className="text-[10px] text-slate-400">
+              اینڈرائیڈ اسٹوڈیو میں <strong>Build APK</strong> منتخب کریں۔
+            </p>
           </div>
         </div>
       </div>

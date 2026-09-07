@@ -36,7 +36,8 @@ import {
   ChevronDown,
   ChevronUp,
   ShoppingCart,
-  Package
+  Package,
+  Printer
 } from "lucide-react";
 import { InvoiceReceiptModal } from "./InvoiceReceiptModal";
 import { ScannerModal } from "./ScannerModal";
@@ -74,6 +75,10 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
   const [amountPaidInput, setAmountPaidInput] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [completedInvoice, setCompletedInvoice] = useState<Invoice | null>(null);
+
+  // Thermal Receipt Printing feature state
+  const [showThermalModal, setShowThermalModal] = useState(false);
+  const [thermalInvoice, setThermalInvoice] = useState<Invoice | null>(null);
 
   // New Bill & Cancel Bill confirmation modals & notifications
   const [showCancelBillModal, setShowCancelBillModal] = useState(false);
@@ -804,6 +809,46 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
+            {/* Thermal Print Preview Button */}
+            <button
+              onClick={() => {
+                if (cart.length === 0) {
+                  showNotification("کارٹ خالی ہے (Cart is empty)");
+                  return;
+                }
+                const draftInv: Invoice = {
+                  id: `draft-${Date.now()}`,
+                  invoiceNumber: `HPS-REC-${Math.floor(1000 + Math.random() * 9000)}`,
+                  date: new Date().toISOString(),
+                  customerId: selectedCustomer?.id,
+                  customerName: selectedCustomer ? selectedCustomer.name : "Walk-in Cash Customer",
+                  customerPhone: selectedCustomer?.phone || "",
+                  items: [...cart],
+                  subtotal,
+                  discount: discountAmount,
+                  tax: 0,
+                  grandTotal,
+                  amountPaid: Math.min(amountPaid, grandTotal),
+                  balanceDue,
+                  paymentMethod,
+                  cashierName: activeUser.name,
+                  cashierId: activeUser.id,
+                  cashierRole: activeUser.role,
+                  counterStation: activeUser.counterStation || "Counter #1",
+                  printedBy: activeUser.name,
+                  printedAt: new Date().toISOString(),
+                  notes: notes || undefined,
+                };
+                setThermalInvoice(draftInv);
+                setShowThermalModal(true);
+              }}
+              title="تھرمل رسید پرنٹ (Thermal Receipt Print)"
+              className="px-2.5 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/40 text-xs font-semibold flex items-center gap-1 transition"
+            >
+              <Printer className="w-3.5 h-3.5 text-blue-400" />
+              <span className="hidden sm:inline">تھرمل پرنٹ</span>
+            </button>
+
             {/* New Bill Button */}
             <button
               onClick={handleRequestNewBill}
@@ -1310,6 +1355,174 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
           }
         }}
       />
+
+      {/* Thermal Receipt Print Modal */}
+      {showThermalModal && thermalInvoice && (
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden animate-in zoom-in-95">
+            <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+              <div className="flex items-center gap-2">
+                <Printer className="w-5 h-5 text-blue-400" />
+                <h3 className="font-bold text-slate-100 text-sm">تھرمل رسید پرنٹ (Thermal Receipt Print)</h3>
+              </div>
+              <button onClick={() => setShowThermalModal(false)} className="text-slate-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-5 bg-slate-950/60 max-h-[70vh] overflow-y-auto flex flex-col items-center">
+              {/* Printable Thermal Receipt Container */}
+              <div 
+                id="billing-thermal-receipt-container"
+                className="bg-white text-slate-950 p-5 rounded-lg font-mono text-xs shadow-xl border border-slate-300 w-full max-w-[380px]"
+              >
+                <style dangerouslySetInnerHTML={{__html: `
+                  @media print {
+                    body * {
+                      visibility: hidden !important;
+                    }
+                    #billing-thermal-receipt-container, #billing-thermal-receipt-container * {
+                      visibility: visible !important;
+                    }
+                    #billing-thermal-receipt-container {
+                      position: absolute !important;
+                      left: 0 !important;
+                      top: 0 !important;
+                      width: 100% !important;
+                      max-width: 100% !important;
+                      margin: 0 !important;
+                      padding: 10px !important;
+                      border: none !important;
+                      box-shadow: none !important;
+                      color: #000000 !important;
+                      background: #ffffff !important;
+                      font-family: 'Courier New', Courier, monospace !important;
+                    }
+                    .no-print {
+                      display: none !important;
+                    }
+                  }
+                `}} />
+
+                {/* Store Header */}
+                <div className="text-center pb-3 border-b-2 border-dashed border-slate-400 space-y-1">
+                  <h2 className="font-black text-base uppercase tracking-wide font-sans text-slate-950">
+                    {settings.storeName || "Haider Pipe and Sanitary Store"}
+                  </h2>
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-800 font-sans">
+                    🏢 {thermalInvoice.branchName || "Main Branch Peshawar"}
+                  </div>
+                  <p className="text-[10px] text-slate-700 font-sans">
+                    📍 {settings.address || "Peshawar Cantt"}
+                  </p>
+                  <p className="text-[10px] text-slate-700 font-sans font-bold">
+                    📞 {settings.phone || "0333-1234567 | 091-5273423"}
+                  </p>
+                </div>
+
+                {/* Invoice Meta */}
+                <div className="py-2 border-b border-dashed border-slate-400 text-[11px] font-sans space-y-1">
+                  <div className="flex justify-between font-bold">
+                    <span>Bill No: {thermalInvoice.invoiceNumber}</span>
+                    <span className="uppercase text-[10px] bg-slate-200 px-1.5 py-0.5 rounded">{thermalInvoice.paymentMethod}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-600 text-[10px]">
+                    <span>Date: {new Date(thermalInvoice.date).toLocaleDateString()}</span>
+                    <span>Time: {new Date(thermalInvoice.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-800 text-[10px]">
+                    <span>Customer: <strong>{thermalInvoice.customerName}</strong></span>
+                    <span>Cashier: {thermalInvoice.cashierName}</span>
+                  </div>
+                </div>
+
+                {/* Items Table */}
+                <div className="py-2 border-b-2 border-dashed border-slate-400 font-sans">
+                  <table className="w-full text-[11px]">
+                    <thead>
+                      <tr className="border-b border-slate-400 text-slate-900 font-black">
+                        <th className="text-left py-1">Item</th>
+                        <th className="text-center py-1">Qty</th>
+                        <th className="text-right py-1">Price</th>
+                        <th className="text-right py-1">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {thermalInvoice.items.map((item, idx) => (
+                        <tr key={idx} className="align-top">
+                          <td className="py-1 pr-1">
+                            <span className="font-bold block text-slate-950">{item.product.name}</span>
+                            {item.product.brand && <span className="text-[9px] text-slate-600">{item.product.brand}</span>}
+                          </td>
+                          <td className="py-1 text-center font-mono whitespace-nowrap">{item.quantity} {item.product.unit || "pcs"}</td>
+                          <td className="py-1 text-right font-mono whitespace-nowrap">{item.unitPrice.toLocaleString()}</td>
+                          <td className="py-1 text-right font-mono font-bold whitespace-nowrap">{item.total.toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Totals */}
+                <div className="py-2 border-b border-dashed border-slate-400 space-y-1 text-[11px] font-sans">
+                  <div className="flex justify-between text-slate-700">
+                    <span>Subtotal:</span>
+                    <span className="font-mono">Rs {thermalInvoice.subtotal.toLocaleString()}</span>
+                  </div>
+                  {thermalInvoice.discount > 0 && (
+                    <div className="flex justify-between text-emerald-700 font-semibold">
+                      <span>Discount:</span>
+                      <span className="font-mono">- Rs {thermalInvoice.discount.toLocaleString()}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-sm font-black text-slate-950 pt-1 border-t border-slate-400">
+                    <span>Grand Total:</span>
+                    <span className="font-mono">Rs {thermalInvoice.grandTotal.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-700">
+                    <span>Amount Paid:</span>
+                    <span className="font-mono font-bold">Rs {thermalInvoice.amountPaid.toLocaleString()}</span>
+                  </div>
+                  {thermalInvoice.balanceDue > 0 && (
+                    <div className="flex justify-between text-rose-700 font-bold bg-rose-50 p-1 rounded">
+                      <span>Balance Khata:</span>
+                      <span className="font-mono">Rs {thermalInvoice.balanceDue.toLocaleString()}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer Note */}
+                <div className="pt-3 text-center font-sans space-y-1">
+                  <p className="text-[10px] italic text-slate-700 font-semibold">
+                    "{settings.receiptFooter || "Thank you for shopping with Haider Pipe & Sanitary Store!"}"
+                  </p>
+                  <div className="text-[8px] text-slate-500 font-mono">
+                    Software by HaiderSanitary • {new Date().toLocaleDateString()}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-4 py-3 bg-slate-900 border-t border-slate-800 flex items-center justify-between">
+              <button
+                onClick={() => setShowThermalModal(false)}
+                className="px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 rounded-lg transition"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  window.print();
+                }}
+                className="flex items-center gap-2 px-5 py-2.5 text-xs font-black bg-blue-600 hover:bg-blue-500 text-white rounded-lg shadow-lg shadow-blue-600/30 transition"
+              >
+                <Printer className="w-4 h-4" />
+                <span>Print Thermal Receipt (تھرمل پرنٹ)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Invoice Receipt Modal */}
       {completedInvoice && (

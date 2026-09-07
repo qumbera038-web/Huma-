@@ -25,17 +25,17 @@ const KEYS = {
   THEME: "hps_pos_theme_v3",
 };
 
-export type AppTheme = "slate" | "light" | "navy" | "emerald" | "black" | "amber";
+export type AppTheme = "slate" | "light" | "navy" | "emerald" | "black" | "amber" | "3d";
 
 export const getStoredTheme = (): AppTheme => {
   try {
     const raw = localStorage.getItem(KEYS.THEME);
-    if (raw && ["slate", "light", "navy", "emerald", "black", "amber"].includes(raw)) {
+    if (raw && ["slate", "light", "navy", "emerald", "black", "amber", "3d"].includes(raw)) {
       return raw as AppTheme;
     }
-    return "slate";
+    return "3d"; // Default to 3D theme for HaiderSanitary dream showroom
   } catch {
-    return "slate";
+    return "3d";
   }
 };
 

@@ -159,9 +159,9 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
   const [installedThemes, setInstalledThemes] = useState<string[]>(() => {
     try {
       const stored = localStorage.getItem("hps_installed_themes_v3");
-      return stored ? JSON.parse(stored) : ["slate", "light"];
+      return stored ? JSON.parse(stored) : ["3d", "slate", "light"];
     } catch {
-      return ["slate", "light"];
+      return ["3d", "slate", "light"];
     }
   });
   const [installingThemeId, setInstallingThemeId] = useState<string | null>(null);
@@ -991,9 +991,18 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 my-2 max-h-[380px] overflow-y-auto pr-1">
               {[
                 {
+                  id: "3d",
+                  name: "3D Holographic Metallic Showroom",
+                  nameUrdu: "تھری ڈی ہولوگرافک سینیٹری تھیم (3D Dream)",
+                  bgClass: "bg-gradient-to-br from-indigo-950 via-[#0b0f19] to-slate-950 border-blue-500/50 text-slate-100 shadow-2xl",
+                  dotColor: "bg-blue-400 animate-pulse",
+                  badge: "3D Holographic",
+                  desc: "Futuristic 3D depth, metallic sheen & glowing showroom finish"
+                },
+                {
                   id: "slate",
                   name: "Dark Slate Pro",
-                  nameUrdu: "پروفیشنل ڈارک سلیٹ (ڈیفالٹ)",
+                  nameUrdu: "پروفیشنل ڈارک سلیٹ",
                   bgClass: "bg-slate-950 border-slate-800 text-slate-100",
                   dotColor: "bg-slate-500",
                   badge: "Default Pro",

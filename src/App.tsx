@@ -343,6 +343,7 @@ export default function App() {
 
   // Dynamic Background Theme Classes (Premium "Unlimited" Theme)
   const themeClassMap: Record<AppTheme, string> = {
+    "3d": "bg-[#0b0f19] bg-[radial-gradient(circle_at_50%_0%,_var(--tw-gradient-stops))] from-blue-900/60 via-[#0a0e1a] to-[#04060b] text-slate-100 shadow-[inset_0_1px_2px_rgba(255,255,255,0.2)]",
     slate: "bg-slate-900 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800 via-[#1e293b] to-slate-950 text-slate-100",
     light: "bg-[#F8FAFC] bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-50/50 via-white to-slate-100 text-slate-900", 
     navy: "bg-[#0A1128] bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-blue-900/40 via-[#0A1128] to-[#010B14] text-blue-50",

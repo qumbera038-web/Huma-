@@ -159,9 +159,9 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
   const [installedThemes, setInstalledThemes] = useState<string[]>(() => {
     try {
       const stored = localStorage.getItem("hps_installed_themes_v3");
-      return stored ? JSON.parse(stored) : ["3d", "slate", "light"];
+      return stored ? JSON.parse(stored) : ["uni", "3d", "slate", "light"];
     } catch {
-      return ["3d", "slate", "light"];
+      return ["uni", "3d", "slate", "light"];
     }
   });
   const [installingThemeId, setInstallingThemeId] = useState<string | null>(null);
@@ -991,13 +991,22 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 my-2 max-h-[380px] overflow-y-auto pr-1">
               {[
                 {
+                  id: "uni",
+                  name: "Uniform Pro (Uni Background)",
+                  nameUrdu: "یکساں یونیفارم بیک گراؤنڈ (Uni Solid)",
+                  bgClass: "bg-[#0b0f19] border-blue-500/50 text-slate-100 shadow-md",
+                  dotColor: "bg-blue-400",
+                  badge: "Uni Clean",
+                  desc: "Smooth, clean, single-tone uniform background with zero eye strain"
+                },
+                {
                   id: "3d",
-                  name: "3D Holographic Metallic Showroom",
-                  nameUrdu: "تھری ڈی ہولوگرافک سینیٹری تھیم (3D Dream)",
-                  bgClass: "bg-gradient-to-br from-indigo-950 via-[#0b0f19] to-slate-950 border-blue-500/50 text-slate-100 shadow-2xl",
-                  dotColor: "bg-blue-400 animate-pulse",
-                  badge: "3D Holographic",
-                  desc: "Futuristic 3D depth, metallic sheen & glowing showroom finish"
+                  name: "3D Metallic Showroom",
+                  nameUrdu: "تھری ڈی میٹالک سینیٹری تھیم",
+                  bgClass: "bg-[#0b0f19] border-blue-500/30 text-slate-100 shadow-lg",
+                  dotColor: "bg-blue-400",
+                  badge: "3D Metallic",
+                  desc: "Subtle 3D depth and metallic card finish"
                 },
                 {
                   id: "slate",

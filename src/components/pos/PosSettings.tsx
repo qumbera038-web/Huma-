@@ -444,6 +444,8 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
 
             <div className="grid grid-cols-2 gap-2">
               {[
+                { id: "uni", name: "Uni Uniform", urdu: "یکساں پلین", bg: "bg-[#0b0f19]", border: "border-slate-700", dot: "bg-blue-400" },
+                { id: "3d", name: "3D Metallic", urdu: "تھری ڈی", bg: "bg-[#0b0f19]", border: "border-blue-500/50", dot: "bg-blue-400" },
                 { id: "slate", name: "Dark Slate Pro", urdu: "ڈارک سلیٹ", bg: "bg-slate-950", border: "border-slate-700", dot: "bg-slate-500" },
                 { id: "light", name: "Clean Light", urdu: "روشن سفید", bg: "bg-slate-100 text-slate-900", border: "border-slate-300", dot: "bg-blue-600" },
                 { id: "navy", name: "Royal Navy", urdu: "شاہی نیوی", bg: "bg-[#0b1329]", border: "border-blue-800", dot: "bg-blue-500" },

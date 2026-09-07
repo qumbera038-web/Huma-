@@ -341,15 +341,16 @@ export default function App() {
     return customers.reduce((sum, c) => sum + c.outstandingKhata, 0);
   }, [customers]);
 
-  // Dynamic Background Theme Classes (Premium "Unlimited" Theme)
+  // Dynamic Background Theme Classes (Clean, Uniform "Uni" Backgrounds)
   const themeClassMap: Record<AppTheme, string> = {
-    "3d": "bg-[#0b0f19] bg-[radial-gradient(circle_at_50%_0%,_var(--tw-gradient-stops))] from-blue-900/60 via-[#0a0e1a] to-[#04060b] text-slate-100 shadow-[inset_0_1px_2px_rgba(255,255,255,0.2)]",
-    slate: "bg-slate-900 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800 via-[#1e293b] to-slate-950 text-slate-100",
-    light: "bg-[#F8FAFC] bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-50/50 via-white to-slate-100 text-slate-900", 
-    navy: "bg-[#0A1128] bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-blue-900/40 via-[#0A1128] to-[#010B14] text-blue-50",
-    emerald: "bg-[#06241B] bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-emerald-800/30 via-[#06241B] to-[#02120D] text-emerald-50",
-    black: "bg-black bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-zinc-900/50 via-black to-black text-neutral-100",
-    amber: "bg-[#1C1917] bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-amber-900/30 via-[#1C1917] to-black text-amber-50",
+    uni: "bg-[#0b0f19] text-slate-100",
+    "3d": "bg-[#0b0f19] text-slate-100 shadow-[inset_0_1px_2px_rgba(255,255,255,0.05)]",
+    slate: "bg-slate-900 text-slate-100",
+    light: "bg-[#F8FAFC] text-slate-900", 
+    navy: "bg-[#0A1128] text-blue-50",
+    emerald: "bg-[#06241B] text-emerald-50",
+    black: "bg-black text-neutral-100",
+    amber: "bg-[#1C1917] text-amber-50",
   };
 
   return (

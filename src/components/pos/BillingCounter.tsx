@@ -37,11 +37,15 @@ import {
   ChevronUp,
   ShoppingCart,
   Package,
-  Printer
+  Printer,
+  FileDown,
+  FileText,
+  Loader2
 } from "lucide-react";
 import { InvoiceReceiptModal } from "./InvoiceReceiptModal";
 import { ScannerModal } from "./ScannerModal";
 import { useLanguage } from "../../context/LanguageContext";
+import { downloadPdfReceipt } from "../../utils/pdfReceiptGenerator";
 
 interface BillingCounterProps {
   products: Product[];
@@ -75,6 +79,8 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
   const [amountPaidInput, setAmountPaidInput] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [completedInvoice, setCompletedInvoice] = useState<Invoice | null>(null);
+  const [lastSavedInvoice, setLastSavedInvoice] = useState<Invoice | null>(null);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   // Thermal Receipt Printing feature state
   const [showThermalModal, setShowThermalModal] = useState(false);
@@ -115,6 +121,25 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
   const showNotification = (msg: string) => {
     setActionNotification(msg);
     setTimeout(() => setActionNotification(null), 3000);
+  };
+
+  const handleDownloadInvoicePdf = (inv: Invoice) => {
+    setIsDownloadingPdf(true);
+    setTimeout(() => {
+      try {
+        const success = downloadPdfReceipt({
+          invoice: inv,
+          settings,
+        });
+        if (success) {
+          showNotification(`✓ انوائس ${inv.invoiceNumber} کی PDF کامیابی سے ڈاؤن لوڈ ہو گئی!`);
+        }
+      } catch (e) {
+        console.error("PDF generation failed:", e);
+      } finally {
+        setIsDownloadingPdf(false);
+      }
+    }, 100);
   };
 
   // Keyboard shortcut listener for F2 (New Bill) and Escape (Cancel Bill)
@@ -430,7 +455,9 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
     }
 
     onSaveInvoice(newInvoice, updatedProducts, updatedCustomers, newKhataTx);
+    setLastSavedInvoice(newInvoice);
     setCompletedInvoice(newInvoice);
+    showNotification(`✓ انوائس ${invoiceNum} محفوظ ہو گئی! (PDF رسید تیار ہے)`);
 
     setCart([]);
     setDiscountValue(0);
@@ -809,6 +836,23 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
+            {/* Last Saved Invoice PDF Download Button */}
+            {lastSavedInvoice && (
+              <button
+                onClick={() => handleDownloadInvoicePdf(lastSavedInvoice)}
+                disabled={isDownloadingPdf}
+                title={`Download PDF for ${lastSavedInvoice.invoiceNumber}`}
+                className="px-2.5 py-1.5 rounded-lg bg-indigo-600/25 hover:bg-indigo-600/35 text-indigo-300 border border-indigo-500/40 text-xs font-bold flex items-center gap-1 transition shadow-sm active:scale-95 cursor-pointer"
+              >
+                {isDownloadingPdf ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-400" />
+                ) : (
+                  <FileDown className="w-3.5 h-3.5 text-indigo-400" />
+                )}
+                <span className="hidden sm:inline">PDF رسید</span>
+              </button>
+            )}
+
             {/* Thermal Print Preview Button */}
             <button
               onClick={() => {
@@ -901,10 +945,48 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
             </div>
           </div>
 
-          <span className="px-2 py-0.5 rounded text-[9px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 whitespace-nowrap">
-            Counter Ready
-          </span>
+          <div className="flex items-center gap-1 shrink-0">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Online</span>
+          </div>
         </div>
+
+        {/* Last Saved Invoice Quick Access Banner with Direct PDF Download */}
+        {lastSavedInvoice && (
+          <div className="px-3.5 py-2 bg-indigo-950/40 border-b border-indigo-500/30 flex items-center justify-between gap-2 text-xs animate-in fade-in">
+            <div className="flex items-center gap-2 min-w-0">
+              <FileText className="w-4 h-4 text-indigo-400 shrink-0" />
+              <div className="truncate text-slate-300 text-[11px]">
+                <span>آخری بل: </span>
+                <span className="font-mono font-bold text-indigo-300">
+                  {lastSavedInvoice.invoiceNumber}
+                </span>{" "}
+                <span className="text-slate-400 font-semibold">(Rs {lastSavedInvoice.grandTotal.toLocaleString()})</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={() => handleDownloadInvoicePdf(lastSavedInvoice)}
+                disabled={isDownloadingPdf}
+                className="flex items-center gap-1 px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[11px] font-bold shadow-sm transition active:scale-95 cursor-pointer disabled:opacity-50"
+                title="Download PDF directly"
+              >
+                {isDownloadingPdf ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <FileDown className="w-3 h-3" />
+                )}
+                <span>PDF ڈاؤن لوڈ</span>
+              </button>
+              <button
+                onClick={() => setCompletedInvoice(lastSavedInvoice)}
+                className="px-2 py-1 text-[11px] text-slate-300 hover:text-white hover:bg-slate-800 rounded transition cursor-pointer"
+              >
+                رسید دیکھیں
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Customer Selector Bar */}
         <div className="p-3 border-b border-slate-800 bg-slate-950/40">
@@ -1503,22 +1585,36 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
               </div>
             </div>
 
-            <div className="px-4 py-3 bg-slate-900 border-t border-slate-800 flex items-center justify-between">
+            <div className="px-4 py-3 bg-slate-900 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
               <button
                 onClick={() => setShowThermalModal(false)}
                 className="px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 rounded-lg transition"
               >
                 Close
               </button>
-              <button
-                onClick={() => {
-                  window.print();
-                }}
-                className="flex items-center gap-2 px-5 py-2.5 text-xs font-black bg-blue-600 hover:bg-blue-500 text-white rounded-lg shadow-lg shadow-blue-600/30 transition"
-              >
-                <Printer className="w-4 h-4" />
-                <span>Print Thermal Receipt (تھرمل پرنٹ)</span>
-              </button>
+              <div className="flex items-center gap-2">
+                {thermalInvoice && (
+                  <button
+                    onClick={() => {
+                      downloadPdfReceipt({ invoice: thermalInvoice, settings });
+                      showNotification("✓ PDF رسید کامیابی سے ڈاؤن لوڈ ہو گئی!");
+                    }}
+                    className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg shadow transition active:scale-95 cursor-pointer"
+                  >
+                    <FileDown className="w-4 h-4" />
+                    <span>Download PDF (پی ڈی ایف ڈاؤن لوڈ)</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    window.print();
+                  }}
+                  className="flex items-center gap-2 px-5 py-2.5 text-xs font-black bg-blue-600 hover:bg-blue-500 text-white rounded-lg shadow-lg shadow-blue-600/30 transition"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>Print Thermal Receipt (تھرمل پرنٹ)</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

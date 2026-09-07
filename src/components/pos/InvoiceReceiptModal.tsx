@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Invoice, StoreSettings } from "../../types";
 import { getStoredBranches, saveStoredSettings } from "../../utils/posStorage";
+import { downloadPdfReceipt } from "../../utils/pdfReceiptGenerator";
 import { 
   Printer, 
   Download, 
@@ -20,7 +21,9 @@ import {
   Check,
   Eye,
   Sliders,
-  Sparkles
+  Sparkles,
+  FileDown,
+  Loader2
 } from "lucide-react";
 
 interface InvoiceReceiptModalProps {
@@ -60,6 +63,10 @@ export const InvoiceReceiptModal: React.FC<InvoiceReceiptModalProps> = ({
   const [showOperator, setShowOperator] = useState(true);
   const [showSignatures, setShowSignatures] = useState(true);
   const [isSavedPermanently, setIsSavedPermanently] = useState(false);
+
+  // PDF Generation State
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [pdfSuccess, setPdfSuccess] = useState(false);
 
   // Sync state if settings or invoice changes
   useEffect(() => {
@@ -123,6 +130,34 @@ ${showOperator ? `*Billed By:* ${invoice.cashierName} (${invoice.counterStation 
     a.download = `Invoice-${invoice.invoiceNumber}.json`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  // 📄 Generate & Download Professional PDF Receipt using jspdf
+  const handleDownloadPDF = () => {
+    setIsGeneratingPdf(true);
+    setTimeout(() => {
+      try {
+        const success = downloadPdfReceipt({
+          invoice,
+          settings,
+          storeName,
+          branchName,
+          address,
+          phone: mobilePhone || ptclPhone,
+          ntn: showNtn && ntn ? ntn : undefined,
+          receiptFooter,
+        });
+
+        if (success) {
+          setPdfSuccess(true);
+          setTimeout(() => setPdfSuccess(false), 2500);
+        }
+      } catch (err) {
+        console.error("PDF generation failed:", err);
+      } finally {
+        setIsGeneratingPdf(false);
+      }
+    }, 100);
   };
 
   // 💾 Save current values permanently to LocalStorage for all future bills
@@ -634,20 +669,44 @@ ${showOperator ? `*Billed By:* ${invoice.cashierName} (${invoice.counterStation 
         {/* Modal Bottom Sticky Action Panel */}
         <div className="p-4 bg-slate-900 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
           
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={handleDownloadPDF}
+              disabled={isGeneratingPdf}
+              className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg shadow-md shadow-indigo-600/25 transition active:scale-95 cursor-pointer disabled:opacity-50"
+              title="Download professional PDF receipt"
+            >
+              {isGeneratingPdf ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>PDF تیار ہو رہا ہے...</span>
+                </>
+              ) : pdfSuccess ? (
+                <>
+                  <Check className="w-3.5 h-3.5" />
+                  <span>PDF ڈاؤن لوڈ ہو گیا!</span>
+                </>
+              ) : (
+                <>
+                  <FileDown className="w-3.5 h-3.5" />
+                  <span>Download PDF (پی ڈی ایف ڈاؤن لوڈ)</span>
+                </>
+              )}
+            </button>
+
             <button
               onClick={handleWhatsAppShare}
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-600/30 rounded-lg transition active:scale-95 cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-600/30 rounded-lg transition active:scale-95 cursor-pointer"
             >
               <Share2 className="w-3.5 h-3.5" />
               WhatsApp Bill
             </button>
             <button
               onClick={handleDownloadJSON}
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 rounded-lg transition active:scale-95 cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 rounded-lg transition active:scale-95 cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
-              Save JSON
+              JSON
             </button>
           </div>
 

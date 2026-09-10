@@ -102,15 +102,16 @@ export function validateGeminiApiKey(apiKey: string | undefined | null): ApiKeyV
     };
   }
 
-  const hasValidPrefix = trimmed.startsWith("AIza");
-  const hasValidFormat = GEMINI_API_KEY_REGEX.test(trimmed);
+  const isAIza = trimmed.startsWith("AIza");
+  const isAQ = trimmed.startsWith("AQ.") || trimmed.startsWith("ya29.");
   const length = trimmed.length;
 
-  if (!hasValidPrefix) {
+  // Allow standard AIza keys (39 chars) or valid platform keys (AQ.* / ya29.* or general non-placeholders > 15 chars)
+  if (length < 15) {
     return {
       isValid: false,
       sanitizedKey: trimmed,
-      error: 'Invalid API key format: Key must start with the "AIza" prefix.',
+      error: `API key is too short (${length} chars).`,
       details: {
         length,
         expectedLength: 39,
@@ -122,47 +123,14 @@ export function validateGeminiApiKey(apiKey: string | undefined | null): ApiKeyV
     };
   }
 
-  if (length !== 39) {
-    return {
-      isValid: false,
-      sanitizedKey: trimmed,
-      error: `Invalid API key length: Expected 39 characters, received ${length}.`,
-      warning: length < 39 ? "The key appears truncated." : "The key appears to have extra trailing characters.",
-      details: {
-        length,
-        expectedLength: 39,
-        prefix: trimmed.substring(0, 6),
-        hasValidPrefix: true,
-        hasValidFormat: false,
-        isPlaceholder: false,
-      },
-    };
-  }
-
-  if (!hasValidFormat) {
-    return {
-      isValid: false,
-      sanitizedKey: trimmed,
-      error: "Invalid API key characters: Key must contain only alphanumeric characters, underscores, and hyphens after 'AIza'.",
-      details: {
-        length,
-        expectedLength: 39,
-        prefix: trimmed.substring(0, 6),
-        hasValidPrefix: true,
-        hasValidFormat: false,
-        isPlaceholder: false,
-      },
-    };
-  }
-
   return {
     isValid: true,
     sanitizedKey: trimmed,
     details: {
-      length: 39,
+      length,
       expectedLength: 39,
       prefix: trimmed.substring(0, 6),
-      hasValidPrefix: true,
+      hasValidPrefix: isAIza || isAQ,
       hasValidFormat: true,
       isPlaceholder: false,
     },

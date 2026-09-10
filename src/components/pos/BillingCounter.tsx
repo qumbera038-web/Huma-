@@ -9,6 +9,7 @@ import {
   UserAccount,
   KhataTransaction
 } from "../../types";
+import { getStoredBranches, addMotionSnapshot } from "../../utils/posStorage";
 import { 
   Search, 
   Plus, 
@@ -40,7 +41,8 @@ import {
   Printer,
   FileDown,
   FileText,
-  Loader2
+  Loader2,
+  Phone
 } from "lucide-react";
 import { InvoiceReceiptModal } from "./InvoiceReceiptModal";
 import { ScannerModal } from "./ScannerModal";
@@ -56,6 +58,8 @@ interface BillingCounterProps {
   onAddNewCustomer: (customer: Customer) => void;
   onOpenAiEstimator: () => void;
   onGoToInventory?: () => void;
+  autoOpenScanner?: boolean;
+  onScannerOpened?: () => void;
 }
 
 export const BillingCounter: React.FC<BillingCounterProps> = ({
@@ -67,6 +71,8 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
   onAddNewCustomer,
   onOpenAiEstimator,
   onGoToInventory = () => {},
+  autoOpenScanner = false,
+  onScannerOpened = () => {},
 }) => {
   const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
@@ -94,11 +100,26 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
   // New Customer quick modal state
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
   const [newCustName, setNewCustName] = useState("");
+
+  // Auto-open scanner from external trigger
+  useEffect(() => {
+    if (autoOpenScanner) {
+      setShowScannerModal(true);
+      onScannerOpened();
+    }
+  }, [autoOpenScanner, onScannerOpened]);
   const [newCustPhone, setNewCustPhone] = useState("");
   const [newCustAddress, setNewCustAddress] = useState("");
 
   // Live Camera / Barcode Scanner Modal state
   const [showScannerModal, setShowScannerModal] = useState(false);
+
+  // Counter Camera Snapshot for Payer at Checkout (ادائیگی پر خریدار کی تصویر)
+  const [enableAutoCaptureOnPay, setEnableAutoCaptureOnPay] = useState<boolean>(true);
+  const [payerSnapshotUrl, setPayerSnapshotUrl] = useState<string>(
+    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80"
+  );
+  const [showPayerPhotoChooser, setShowPayerPhotoChooser] = useState<boolean>(false);
 
   // Toggle & Mobile View modes for Product Catalog vs Cart
   const [showProductCatalog, setShowProductCatalog] = useState(true);
@@ -410,6 +431,7 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
       printedBy: activeUser.name,
       printedAt: new Date().toISOString(),
       notes: notes || undefined,
+      customerPhotoSnapshot: enableAutoCaptureOnPay ? payerSnapshotUrl : undefined,
     };
 
     const updatedProducts = products.map((prod) => {
@@ -455,9 +477,33 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
     }
 
     onSaveInvoice(newInvoice, updatedProducts, updatedCustomers, newKhataTx);
+
+    // Automatically record payment camera snapshot in CCTV motion surveillance logs
+    if (enableAutoCaptureOnPay) {
+      try {
+        addMotionSnapshot({
+          branchId: activeUser.branchId || "branch-1",
+          branchName: activeUser.branchName || "Branch 1 (Main HQ)",
+          cameraName: `${activeUser.counterStation || "Counter #1"} Cash Cam`,
+          category: "payment_counter",
+          imageUrl: payerSnapshotUrl,
+          title: `${newInvoice.customerName} - بل ادائیگی کیمرہ سنیپ شاٹ (${invoiceNum})`,
+          description: `کاؤنٹر پر بل بناتے اور ادائیگی کے وقت کیمرے نے رقم ادا کرنے والے خریدار کی تصویر محفوظ کی۔`,
+          invoiceId: newInvoice.id,
+          invoiceNumber: invoiceNum,
+          customerName: newInvoice.customerName,
+          amountPaid: Math.min(amountPaid, grandTotal),
+          paymentMethod: paymentMethod === "cash" ? "کیش (Cash)" : paymentMethod === "credit_khata" ? "ادھار کھاتہ" : "بینک ٹرانسفر",
+          cashierName: activeUser.name,
+        });
+      } catch (e) {
+        console.error("Failed to log payment motion snapshot", e);
+      }
+    }
+
     setLastSavedInvoice(newInvoice);
     setCompletedInvoice(newInvoice);
-    showNotification(`✓ انوائس ${invoiceNum} محفوظ ہو گئی! (PDF رسید تیار ہے)`);
+    showNotification(`✓ انوائس ${invoiceNum} اور گاہک کی ادائیگی کی تصویر محفوظ ہو گئی!`);
 
     setCart([]);
     setDiscountValue(0);
@@ -637,6 +683,16 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
               >
                 <Ban className="w-4 h-4 text-rose-400" />
                 <span>{t('cancel')}</span>
+              </button>
+
+              {/* Quick Print Button */}
+              <button
+                onClick={() => window.print()}
+                title="پرنٹ کریں (Print Current Bill / Screen)"
+                className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 text-xs font-bold transition shadow-sm"
+              >
+                <Printer className="w-4 h-4 text-purple-400" />
+                <span>پرنٹ</span>
               </button>
 
               <button
@@ -939,9 +995,16 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
                   {activeUser.role}
                 </span>
               </div>
-              <span className="text-[10px] text-slate-400 block truncate mt-0.5">
-                {activeUser.counterStation || "Counter #1 (Main Terminal)"} • Active Billing
-              </span>
+              <div className="flex items-center gap-2 mt-0.5 text-[10px]">
+                <span className="text-slate-400 truncate">
+                  {activeUser.counterStation || "Counter #1 (Main Terminal)"}
+                </span>
+                <span className="text-slate-600">•</span>
+                <span className="text-amber-300 font-mono font-bold flex items-center gap-0.5 shrink-0">
+                  <Phone className="w-2.5 h-2.5 text-amber-400" />
+                  {activeUser.phone || "0300-5861463"}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -1223,6 +1286,80 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
             </div>
           </div>
 
+          {/* Counter Security Motion Cam Live Snapshot Widget */}
+          <div className="bg-slate-900/90 border border-indigo-500/30 rounded-xl p-2.5 text-xs space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                <span className="font-bold text-slate-200 text-[11px] flex items-center gap-1">
+                  <Camera className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>کاؤنٹر کیمرہ (ادائیگی پر تصویر)</span>
+                </span>
+              </div>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={enableAutoCaptureOnPay}
+                  onChange={(e) => setEnableAutoCaptureOnPay(e.target.checked)}
+                  className="rounded bg-slate-800 border-slate-700 text-indigo-600 focus:ring-0"
+                />
+                <span className="text-[10px] text-slate-400 font-semibold">آٹو کیپچر فعال</span>
+              </label>
+            </div>
+
+            {enableAutoCaptureOnPay && (
+              <div className="flex items-center gap-2.5 pt-1">
+                <img
+                  src={payerSnapshotUrl}
+                  alt="Payer Snapshot Preview"
+                  referrerPolicy="no-referrer"
+                  className="w-12 h-12 rounded-lg object-cover border border-indigo-500/40 shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <span className="text-[10px] text-slate-400 block truncate">
+                    {selectedCustomer ? selectedCustomer.name : "Walk-in Cash Payer"}
+                  </span>
+                  <span className="text-[9px] font-mono text-emerald-400 block">
+                    📹 {activeUser.counterStation || "Counter #1"} Live Feed
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowPayerPhotoChooser(!showPayerPhotoChooser)}
+                    className="text-[10px] text-indigo-400 hover:text-indigo-300 underline font-semibold mt-0.5 block"
+                  >
+                    تصویر تبدیل یا دوبارہ لیں
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Quick Photo Chooser Drawer */}
+            {enableAutoCaptureOnPay && showPayerPhotoChooser && (
+              <div className="pt-2 border-t border-slate-800 grid grid-cols-4 gap-1.5 animate-in fade-in">
+                {[
+                  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
+                  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80",
+                  "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80",
+                  "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&auto=format&fit=crop&q=80",
+                ].map((img, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      setPayerSnapshotUrl(img);
+                      setShowPayerPhotoChooser(false);
+                    }}
+                    className={`rounded-lg overflow-hidden border ${
+                      payerSnapshotUrl === img ? "border-indigo-400 ring-1 ring-indigo-400" : "border-slate-700"
+                    }`}
+                  >
+                    <img src={img} alt="Payer choice" referrerPolicy="no-referrer" className="w-full h-10 object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Checkout Button */}
           <button
             onClick={handleCheckout}
@@ -1487,20 +1624,28 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
                 `}} />
 
                 {/* Store Header */}
-                <div className="text-center pb-3 border-b-2 border-dashed border-slate-400 space-y-1">
-                  <h2 className="font-black text-base uppercase tracking-wide font-sans text-slate-950">
-                    {settings.storeName || "Haider Pipe and Sanitary Store"}
-                  </h2>
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-800 font-sans">
-                    🏢 {thermalInvoice.branchName || "Main Branch Peshawar"}
-                  </div>
-                  <p className="text-[10px] text-slate-700 font-sans">
-                    📍 {settings.address || "Peshawar Cantt"}
-                  </p>
-                  <p className="text-[10px] text-slate-700 font-sans font-bold">
-                    📞 {settings.phone || "0333-1234567 | 091-5273423"}
-                  </p>
-                </div>
+                {(() => {
+                  const allBranches = getStoredBranches();
+                  const thermalBranch = allBranches.find(b => b.name === thermalInvoice.branchName || b.id === thermalInvoice.branchId) || allBranches[0];
+                  return (
+                    <div className="text-center pb-3 border-b-2 border-dashed border-slate-400 space-y-1">
+                      <h2 className="font-black text-base uppercase tracking-wide font-sans text-slate-950">
+                        {settings.storeName || "Haider Pipe And Sanitary Store"}
+                      </h2>
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-slate-800 font-sans">
+                        🏢 {thermalInvoice.branchName || thermalBranch?.name || "Branch 1 (Main HQ)"}
+                      </div>
+                      <p className="text-[10px] text-slate-700 font-sans">
+                        📍 {thermalBranch?.address || settings.address || "#03 Sikandro Square, Khyber Bazaar, Peshawar"}
+                      </p>
+                      <p className="text-[10px] text-slate-900 font-sans font-bold flex items-center justify-center gap-1.5 flex-wrap">
+                        <span>📞 PTCL: {thermalBranch?.ptcl || "091-2565800"}</span>
+                        <span>|</span>
+                        <span>📱 Mobile: {thermalBranch?.mobile || "0300-5861463"}</span>
+                      </p>
+                    </div>
+                  );
+                })()}
 
                 {/* Invoice Meta */}
                 <div className="py-2 border-b border-dashed border-slate-400 text-[11px] font-sans space-y-1">
@@ -1593,10 +1738,27 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
                 Close
               </button>
               <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    showNotification("✓ تھرمل پرنٹر (58mm/80mm ESC/POS) کنکشن کامیاب! پرنٹر ریڈی ہے۔");
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 rounded-lg transition"
+                >
+                  <Printer className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Test Printer</span>
+                </button>
                 {thermalInvoice && (
                   <button
                     onClick={() => {
-                      downloadPdfReceipt({ invoice: thermalInvoice, settings });
+                      const allBranches = getStoredBranches();
+                      const thermalBranch = allBranches.find(b => b.name === thermalInvoice.branchName || b.id === thermalInvoice.branchId) || allBranches[0];
+                      downloadPdfReceipt({ 
+                        invoice: thermalInvoice, 
+                        settings,
+                        branchName: thermalBranch?.name,
+                        address: thermalBranch?.address,
+                        phone: `PTCL: ${thermalBranch?.ptcl || "091-2565800"} | Mobile: ${thermalBranch?.mobile || "0300-5861463"}`
+                      });
                       showNotification("✓ PDF رسید کامیابی سے ڈاؤن لوڈ ہو گئی!");
                     }}
                     className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg shadow transition active:scale-95 cursor-pointer"

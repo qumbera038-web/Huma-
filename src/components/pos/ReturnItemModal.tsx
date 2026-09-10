@@ -125,37 +125,37 @@ export const ReturnItemModal: React.FC<ReturnItemModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-slate-900 border border-slate-700/80 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="bg-slate-900 border-2 border-amber-500/60 rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl shadow-amber-500/20 overflow-hidden text-slate-100">
         {/* Header */}
-        <div className="p-5 border-b border-slate-800 bg-slate-950/60 flex items-center justify-between">
+        <div className="p-5 border-b border-amber-500/30 bg-slate-950 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
-              <RotateCcw className="w-5 h-5" />
+            <div className="w-11 h-11 rounded-2xl bg-amber-500/20 border-2 border-amber-500/50 flex items-center justify-center text-amber-400 shadow-md">
+              <RotateCcw className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+              <h3 className="text-lg font-black text-white flex items-center gap-2">
                 <span>↩️ Return Item / Bill Refund Desk</span>
-                <span className="text-xs font-normal text-amber-400 font-urdu">(آئٹم واپسی و ریفنڈ)</span>
+                <span className="text-xs font-bold text-amber-300 font-urdu bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">آئٹم واپسی و ریفنڈ</span>
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-300 font-medium mt-0.5">
                 Lookup customer bill, restock inventory, and issue verified cash/khata refund
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition"
+            className="p-2.5 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700 transition"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-6 overflow-y-auto space-y-5">
+        <div className="p-6 overflow-y-auto space-y-5 bg-slate-900">
           {/* Lookup Input */}
-          <div className="bg-slate-950/50 border border-slate-800 p-4 rounded-xl space-y-3">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+          <div className="bg-slate-950 border-2 border-amber-500/40 p-4 rounded-2xl space-y-3 shadow-inner">
+            <label className="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
               <Search className="w-4 h-4 text-amber-400" />
               <span>Step 1: Enter Bill / Invoice # or Customer</span>
             </label>
@@ -166,11 +166,11 @@ export const ReturnItemModal: React.FC<ReturnItemModalProps> = ({
                 onChange={(e) => setSearchBillQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleLookupBill()}
                 placeholder="e.g. HPS-2026-0001 or BR2-2026-0045 or Customer Name"
-                className="flex-1 px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500"
+                className="flex-1 px-4 py-3 bg-slate-900 border-2 border-slate-700 focus:border-amber-500 rounded-xl text-white placeholder-slate-400 text-sm font-semibold outline-none transition"
               />
               <button
                 onClick={handleLookupBill}
-                className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm rounded-xl transition flex items-center gap-2 shadow-lg shadow-amber-500/20"
+                className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm rounded-xl transition flex items-center gap-2 shadow-lg shadow-amber-500/30"
               >
                 <Search className="w-4 h-4" />
                 <span>Lookup Bill</span>
@@ -178,8 +178,8 @@ export const ReturnItemModal: React.FC<ReturnItemModalProps> = ({
             </div>
 
             {/* Quick list of recent bills */}
-            <div className="pt-2 flex items-center gap-2 flex-wrap text-xs text-slate-400">
-              <span className="text-slate-500 font-medium">Recent Bills:</span>
+            <div className="pt-2 flex items-center gap-2 flex-wrap text-xs text-slate-300">
+              <span className="text-slate-400 font-bold">Recent Bills:</span>
               {invoices.slice(0, 4).map((inv) => (
                 <button
                   key={inv.id}
@@ -191,7 +191,7 @@ export const ReturnItemModal: React.FC<ReturnItemModalProps> = ({
                     setErrorMsg(null);
                     setSuccessMsg(null);
                   }}
-                  className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-blue-400 font-mono transition"
+                  className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 font-mono font-bold border border-slate-700 transition"
                 >
                   {inv.invoiceNumber} ({inv.customerName})
                 </button>
@@ -200,15 +200,15 @@ export const ReturnItemModal: React.FC<ReturnItemModalProps> = ({
           </div>
 
           {errorMsg && (
-            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center gap-2.5 text-red-400 text-xs">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+            <div className="p-3.5 bg-red-500/15 border-2 border-red-500/40 rounded-2xl flex items-center gap-2.5 text-red-300 text-xs font-bold">
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           {successMsg && (
-            <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center gap-2.5 text-emerald-400 text-xs">
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <div className="p-3.5 bg-emerald-500/15 border-2 border-emerald-500/40 rounded-2xl flex items-center gap-2.5 text-emerald-300 text-xs font-bold">
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
               <span>{successMsg}</span>
             </div>
           )}
@@ -216,33 +216,33 @@ export const ReturnItemModal: React.FC<ReturnItemModalProps> = ({
           {/* Selected Invoice Details & Items Selection */}
           {selectedInvoice && (
             <div className="space-y-4 animate-in fade-in duration-150">
-              <div className="bg-slate-800/60 border border-slate-700/80 rounded-xl p-4">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/60 pb-3 mb-3">
+              <div className="bg-slate-950 border-2 border-amber-500/40 rounded-2xl p-4 shadow-xl">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3 mb-4">
                   <div>
-                    <span className="text-xs text-slate-400">Bill Number:</span>
-                    <span className="ml-2 font-mono font-bold text-amber-400">{selectedInvoice.invoiceNumber}</span>
+                    <span className="text-xs text-slate-400 font-semibold">Bill Number:</span>
+                    <span className="ml-2 font-mono font-black text-amber-300 text-sm">{selectedInvoice.invoiceNumber}</span>
                   </div>
                   <div>
-                    <span className="text-xs text-slate-400">Customer:</span>
-                    <span className="ml-2 font-semibold text-slate-200">{selectedInvoice.customerName}</span>
+                    <span className="text-xs text-slate-400 font-semibold">Customer:</span>
+                    <span className="ml-2 font-bold text-white">{selectedInvoice.customerName}</span>
                   </div>
                   <div>
-                    <span className="text-xs text-slate-400">Date:</span>
-                    <span className="ml-2 text-slate-300 text-xs">
+                    <span className="text-xs text-slate-400 font-semibold">Date:</span>
+                    <span className="ml-2 text-slate-200 text-xs font-medium">
                       {new Date(selectedInvoice.date).toLocaleDateString()}
                     </span>
                   </div>
                   <div>
-                    <span className="text-xs text-slate-400">Branch:</span>
-                    <span className="ml-2 text-xs font-bold text-blue-300 bg-blue-500/20 px-2 py-0.5 rounded">
+                    <span className="text-xs text-slate-400 font-semibold">Branch:</span>
+                    <span className="ml-2 text-xs font-black text-amber-300 bg-amber-500/20 px-2.5 py-0.5 rounded-md border border-amber-500/30">
                       {selectedInvoice.branchName || "Branch 1 (Main HQ)"}
                     </span>
                   </div>
                 </div>
 
                 {/* Items in Invoice */}
-                <div className="space-y-3">
-                  <label className="text-xs font-bold uppercase text-slate-300 block">
+                <div className="space-y-2.5">
+                  <label className="text-xs font-black uppercase text-amber-300 block">
                     Step 2: Select Item To Return
                   </label>
                   <select
@@ -251,7 +251,7 @@ export const ReturnItemModal: React.FC<ReturnItemModalProps> = ({
                       setSelectedItemIndex(Number(e.target.value));
                       setReturnQty(1);
                     }}
-                    className="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-amber-500"
+                    className="w-full px-4 py-3 bg-slate-900 border-2 border-slate-700 focus:border-amber-500 rounded-xl text-white font-semibold text-sm outline-none transition"
                   >
                     {selectedInvoice.items.map((item, idx) => (
                       <option key={idx} value={idx}>
@@ -262,9 +262,9 @@ export const ReturnItemModal: React.FC<ReturnItemModalProps> = ({
                 </div>
 
                 {selectedItem && (
-                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-900 p-4 rounded-xl border-2 border-amber-500/30">
                     <div>
-                      <label className="text-xs text-slate-400 block mb-1">Quantity to Return (Max: {maxQty}):</label>
+                      <label className="text-xs text-slate-300 font-bold block mb-1.5">Quantity to Return (Max: {maxQty}):</label>
                       <div className="flex items-center gap-2">
                         <input
                           type="number"
@@ -272,12 +272,12 @@ export const ReturnItemModal: React.FC<ReturnItemModalProps> = ({
                           max={maxQty}
                           value={returnQty}
                           onChange={(e) => setReturnQty(Math.min(maxQty, Math.max(1, Number(e.target.value))))}
-                          className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-amber-400 font-bold text-base focus:outline-none focus:border-amber-500"
+                          className="w-full px-3 py-2.5 bg-slate-950 border-2 border-amber-500/50 rounded-xl text-amber-300 font-black text-base outline-none text-center"
                         />
                         <button
                           type="button"
                           onClick={() => setReturnQty(maxQty)}
-                          className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 rounded-xl whitespace-nowrap"
+                          className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-xs font-black text-amber-300 border border-slate-700 rounded-xl whitespace-nowrap transition"
                         >
                           All ({maxQty})
                         </button>
@@ -285,9 +285,9 @@ export const ReturnItemModal: React.FC<ReturnItemModalProps> = ({
                     </div>
 
                     <div>
-                      <label className="text-xs text-slate-400 block mb-1">Calculated Refund Amount:</label>
-                      <div className="px-3 py-2 bg-slate-900 border border-amber-500/40 rounded-xl text-right">
-                        <span className="text-xs text-slate-400 mr-2">Refund:</span>
+                      <label className="text-xs text-slate-300 font-bold block mb-1.5">Calculated Refund Amount:</label>
+                      <div className="px-3 py-2 bg-slate-950 border-2 border-amber-500/60 rounded-xl text-right flex items-center justify-between">
+                        <span className="text-xs text-slate-400 font-bold">Refund Total:</span>
                         <span className="text-lg font-black text-amber-400 font-mono">
                           {settings.currencySymbol} {refundTotal.toLocaleString()}
                         </span>
@@ -295,13 +295,13 @@ export const ReturnItemModal: React.FC<ReturnItemModalProps> = ({
                     </div>
 
                     <div className="sm:col-span-2">
-                      <label className="text-xs text-slate-400 block mb-1">Return Reason / Memo:</label>
+                      <label className="text-xs text-slate-300 font-bold block mb-1.5">Return Reason / Memo:</label>
                       <input
                         type="text"
                         value={returnReason}
                         onChange={(e) => setReturnReason(e.target.value)}
                         placeholder="e.g. Size mismatch, defective piece, plumber returned unused pipe"
-                        className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-amber-500"
+                        className="w-full px-3 py-2.5 bg-slate-950 border-2 border-slate-700 focus:border-amber-500 rounded-xl text-white font-medium text-xs outline-none transition"
                       />
                     </div>
                   </div>
@@ -313,15 +313,15 @@ export const ReturnItemModal: React.FC<ReturnItemModalProps> = ({
                 <button
                   type="button"
                   onClick={handleConfirmReturn}
-                  className="flex-1 py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm rounded-xl transition shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2"
+                  className="flex-1 py-4 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-sm rounded-2xl transition shadow-xl shadow-amber-500/30 flex items-center justify-center gap-2 border border-amber-300"
                 >
-                  <RotateCcw className="w-5 h-5" />
+                  <RotateCcw className="w-5 h-5 text-slate-950" />
                   <span>Confirm Return & Issue Refund ({settings.currencySymbol} {refundTotal.toLocaleString()})</span>
                 </button>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-5 py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm rounded-xl transition"
+                  className="px-6 py-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm rounded-2xl border border-slate-700 transition"
                 >
                   Close
                 </button>

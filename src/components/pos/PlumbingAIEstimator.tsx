@@ -24,8 +24,11 @@ import {
   CheckCircle2,
   Sliders,
   ChevronRight,
-  ListPlus
+  ListPlus,
+  MapPin,
+  Compass
 } from "lucide-react";
+import { OnlinePlumberRouter } from "./OnlinePlumberRouter";
 
 interface PlumbingAIEstimatorProps {
   products: Product[];
@@ -37,7 +40,7 @@ export const PlumbingAIEstimator: React.FC<PlumbingAIEstimatorProps> = ({
   settings,
 }) => {
   const { t, language } = useLanguage();
-  const [estimatorMode, setEstimatorMode] = useState<"house_boq" | "water_indicator">("house_boq");
+  const [estimatorMode, setEstimatorMode] = useState<"house_boq" | "water_indicator" | "online_plumber">("house_boq");
 
   // ── Existing House BOQ Estimator States ──
   const [projectType, setProjectType] = useState<string>("5-Marla Standard House (2 Bathrooms + 1 Kitchen)");
@@ -53,7 +56,7 @@ export const PlumbingAIEstimator: React.FC<PlumbingAIEstimatorProps> = ({
   const [horizontalDistance, setHorizontalDistance] = useState<number>(50);
   const [wireOption, setWireOption] = useState<"meters" | "roll">("roll");
   const [includePlumberLabor, setIncludePlumberLabor] = useState<boolean>(true);
-  const [indicatorBrand, setIndicatorBrand] = useState<string>("Haider Automation");
+  const [indicatorBrand, setIndicatorBrand] = useState<string>("Qumber Automation");
 
   // Interactive Live Demo Simulator States
   const [demoWaterLevel, setDemoWaterLevel] = useState<number>(75); // 0, 25, 50, 75, 100
@@ -218,43 +221,43 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
 #### 1. PPRC Water Supply Lines (Hot & Cold)
 | Item Description | Quantity | Est. Unit Rate (PKR) | Total (PKR) |
 | :--- | :--- | :--- | :--- |
-| Master PPRC Pipe 25mm (3/4") 13ft | 18 Lengths | Rs. 530 | Rs. 9,540 |
-| Master PPRC Pipe 32mm (1") Main Supply | 6 Lengths | Rs. 790 | Rs. 4,740 |
-| Master PPRC Elbows 25mm 90° | 40 Pcs | Rs. 40 | Rs. 1,600 |
-| Master PPRC Equal Tees 25mm | 20 Pcs | Rs. 55 | Rs. 1,100 |
-| Master Brass MTA/FTA 25 x 1/2" | 16 Pcs | Rs. 200 | Rs. 3,200 |
+| Master PPRC Pipe 25mm (3/4") 13ft | 18 Lengths | PKR 530 | PKR 9,540 |
+| Master PPRC Pipe 32mm (1") Main Supply | 6 Lengths | PKR 790 | PKR 4,740 |
+| Master PPRC Elbows 25mm 90° | 40 Pcs | PKR 40 | PKR 1,600 |
+| Master PPRC Equal Tees 25mm | 20 Pcs | PKR 55 | PKR 1,100 |
+| Master Brass MTA/FTA 25 x 1/2" | 16 Pcs | PKR 200 | PKR 3,200 |
 
-**PPRC Subtotal: Rs. 20,180**
+**PPRC Subtotal: PKR 20,180**
 
 ---
 
 #### 2. PVC Drainage & Sewerage Lines
 | Item Description | Quantity | Est. Unit Rate (PKR) | Total (PKR) |
 | :--- | :--- | :--- | :--- |
-| Popular PVC Pipe 4" (110mm) Drainage | 8 Lengths | Rs. 1,380 | Rs. 11,040 |
-| Popular PVC Pipe 3" (75mm) Waste Line | 6 Lengths | Rs. 990 | Rs. 5,940 |
-| Popular PVC P-Trap 4" with Plug | 3 Pcs | Rs. 420 | Rs. 1,260 |
-| Popular PVC Bends 4" & 3" | 12 Pcs | Rs. 175 | Rs. 2,100 |
-| PVC Solvent Cement (Samad) 250ml | 3 Cans | Rs. 240 | Rs. 720 |
+| Popular PVC Pipe 4" (110mm) Drainage | 8 Lengths | PKR 1,380 | PKR 11,040 |
+| Popular PVC Pipe 3" (75mm) Waste Line | 6 Lengths | PKR 990 | PKR 5,940 |
+| Popular PVC P-Trap 4" with Plug | 3 Pcs | PKR 420 | PKR 1,260 |
+| Popular PVC Bends 4" & 3" | 12 Pcs | PKR 175 | PKR 2,100 |
+| PVC Solvent Cement (Samad) 250ml | 3 Cans | PKR 240 | PKR 720 |
 
-**PVC Subtotal: Rs. 21,060**
+**PVC Subtotal: PKR 21,060**
 
 ---
 
 #### 3. Sanitary Ware & CP Fittings
 | Item Description | Quantity | Est. Unit Rate (PKR) | Total (PKR) |
 | :--- | :--- | :--- | :--- |
-| Porta One-Piece Ceramic Commode Set | 2 Sets | Rs. 17,800 | Rs. 35,600 |
-| Marcopolo Vanity Basin with Pedestal | 2 Sets | Rs. 7,900 | Rs. 15,800 |
-| Sonex Deluxe Bath Shower Wall Mixer | 2 Sets | Rs. 8,500 | Rs. 17,000 |
-| Sonex Heavy Muslim Shower Set | 2 Sets | Rs. 1,550 | Rs. 3,100 |
-| Master Brass Angle Valves 1/2" | 8 Pcs | Rs. 580 | Rs. 4,640 |
+| Porta One-Piece Ceramic Commode Set | 2 Sets | PKR 17,800 | PKR 35,600 |
+| Marcopolo Vanity Basin with Pedestal | 2 Sets | PKR 7,900 | PKR 15,800 |
+| Sonex Deluxe Bath Shower Wall Mixer | 2 Sets | PKR 8,500 | PKR 17,000 |
+| Sonex Heavy Muslim Shower Set | 2 Sets | PKR 1,550 | PKR 3,100 |
+| Master Brass Angle Valves 1/2" | 8 Pcs | PKR 580 | PKR 4,640 |
 
-**Sanitary Subtotal: Rs. 76,140**
+**Sanitary Subtotal: PKR 76,140**
 
 ---
 
-### 💰 Total Material Estimate: **Rs. 117,380** *(PKR)*
+### 💰 Total Material Estimate: **PKR 117,380**
 *(Excluding plumber installation labor charges)*
 
 💡 **Store Advice**: Always perform pneumatic pressure testing at 10 Bar before tiling.`);
@@ -356,15 +359,15 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
 #### 📋 Complete Material & Installation Invoice Estimate
 | Item Code | Material Description | Qty | Unit | Rate (PKR) | Total (PKR) |
 | :--- | :--- | :---: | :---: | :---: | :---: |
-| \`${selectedUnitCode}\` | ${selectedUnitName} | 1 | pc | Rs. ${selectedUnitPrice.toLocaleString()} | Rs. ${selectedUnitPrice.toLocaleString()} |
-| \`IND-PROBE-SS\` | ${probesName} | 1 | set | Rs. ${priceProbeSet.toLocaleString()} | Rs. ${priceProbeSet.toLocaleString()} |
-| \`${wireOption === "roll" ? "IND-CABLE-30" : "IND-LOOSE"}\` | ${cableName} | ${cableQty} | ${cableUnit} | Rs. ${(wireOption === "roll" ? priceCableRoll : priceCablePerMeter).toLocaleString()} | Rs. ${cableCost.toLocaleString()} |
-| \`HDW-ACC-01\` | Rawal plugs, clips, insulation, Teflon pack | 1 | set | Rs. ${installationAccessories.toLocaleString()} | Rs. ${installationAccessories.toLocaleString()} |
-| \`SRV-LABOR\` | Professional Installer / Plumber Fitting Fee | 1 | job | Rs. ${plumberLabor.toLocaleString()} | Rs. ${plumberLabor.toLocaleString()} |
+| \`${selectedUnitCode}\` | ${selectedUnitName} | 1 | pc | PKR ${selectedUnitPrice.toLocaleString()} | PKR ${selectedUnitPrice.toLocaleString()} |
+| \`IND-PROBE-SS\` | ${probesName} | 1 | set | PKR ${priceProbeSet.toLocaleString()} | PKR ${priceProbeSet.toLocaleString()} |
+| \`${wireOption === "roll" ? "IND-CABLE-30" : "IND-LOOSE"}\` | ${cableName} | ${cableQty} | ${cableUnit} | PKR ${(wireOption === "roll" ? priceCableRoll : priceCablePerMeter).toLocaleString()} | PKR ${cableCost.toLocaleString()} |
+| \`HDW-ACC-01\` | Rawal plugs, clips, insulation, Teflon pack | 1 | set | PKR ${installationAccessories.toLocaleString()} | PKR ${installationAccessories.toLocaleString()} |
+| \`SRV-LABOR\` | Professional Installer / Plumber Fitting Fee | 1 | job | PKR ${plumberLabor.toLocaleString()} | PKR ${plumberLabor.toLocaleString()} |
 
 ---
 
-### 💰 Total Package Investment: **Rs. ${grandTotal.toLocaleString()}** *(PKR)*
+### 💰 Total Package Investment: **PKR ${grandTotal.toLocaleString()}**
 *(Includes All Materials, Copper Wires, Probes, and Expert Installation)*
 
 #### 🔬 System Technical Specifications:
@@ -390,28 +393,39 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
     <div className="p-4 max-w-[1600px] mx-auto space-y-4 text-xs">
       
       {/* Tab Switcher - Visual Core */}
-      <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800/80 max-w-md mx-auto">
+      <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800/80 max-w-2xl mx-auto flex-wrap sm:flex-nowrap gap-1">
         <button
           onClick={() => setEstimatorMode("house_boq")}
-          className={`flex-1 py-2 px-3 rounded-lg font-bold text-center transition flex items-center justify-center gap-1.5 ${
+          className={`flex-1 py-2 px-3 rounded-lg font-bold text-center transition flex items-center justify-center gap-1.5 text-xs ${
             estimatorMode === "house_boq"
               ? "bg-blue-600 text-white shadow-md"
               : "text-slate-400 hover:text-slate-200"
           }`}
         >
           <Sparkles className="w-3.5 h-3.5" />
-          <span>House Plumbing Estimator</span>
+          <span>House BOQ Estimator</span>
         </button>
         <button
           onClick={() => setEstimatorMode("water_indicator")}
-          className={`flex-1 py-2 px-3 rounded-lg font-bold text-center transition flex items-center justify-center gap-1.5 ${
+          className={`flex-1 py-2 px-3 rounded-lg font-bold text-center transition flex items-center justify-center gap-1.5 text-xs ${
             estimatorMode === "water_indicator"
               ? "bg-amber-500 text-slate-950 shadow-md"
               : "text-slate-400 hover:text-slate-200"
           }`}
         >
           <Zap className="w-3.5 h-3.5" />
-          <span>Water Indicators Planner</span>
+          <span>Water Indicators</span>
+        </button>
+        <button
+          onClick={() => setEstimatorMode("online_plumber")}
+          className={`flex-1 py-2 px-3 rounded-lg font-bold text-center transition flex items-center justify-center gap-1.5 text-xs ${
+            estimatorMode === "online_plumber"
+              ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md font-black"
+              : "text-slate-400 hover:text-slate-200"
+          }`}
+        >
+          <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Online Plumber & GPS Router</span>
         </button>
       </div>
 
@@ -617,7 +631,7 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
                   <div className="prose prose-invert prose-xs max-w-none space-y-3 whitespace-pre-wrap">
                     <div className="hidden print:block text-center border-b-2 border-black pb-4 mb-6">
                       <h1 className="text-xl font-bold text-black tracking-tight">{settings.storeName}</h1>
-                      <p className="text-xs text-black font-semibold mt-1">Khyber Bazar, Seikarno Square, Peshawar Cantt | PTCL: 091-2565800</p>
+                      <p className="text-xs text-black font-semibold mt-1">#03 Sikandro Square, Khyber Bazaar, Peshawar | PTCL: 091-2565800 | Mobile: 0300-5861463</p>
                       <p className="text-xs text-black mt-0.5 font-bold">PLUMBING & SANITARY MATERIALS ESTIMATE STATEMENT</p>
                       <p className="text-[10px] text-black mt-1">Date: {new Date().toLocaleDateString()}</p>
                     </div>
@@ -642,7 +656,7 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
             </div>
           </div>
         </>
-      ) : (
+      ) : estimatorMode === "water_indicator" ? (
         // ── MODE B: NEW EXQUISITE WATER INDICATORS PLANNER & LIVE SIMULATOR ──
         <>
           {/* Header */}
@@ -693,7 +707,7 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
                   >
                     <Cpu className="w-4 h-4 mx-auto mb-1 opacity-80" />
                     <span className="block text-[10px]">4-LED Indicator</span>
-                    <span className="block text-[8px] font-mono opacity-80">Rs. {priceLed}</span>
+                    <span className="block text-[8px] font-mono opacity-80">PKR {priceLed}</span>
                   </button>
 
                   <button
@@ -706,7 +720,7 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
                   >
                     <Cpu className="w-4 h-4 mx-auto mb-1 opacity-80 animate-spin-slow" />
                     <span className="block text-[10px]">Auto Controller</span>
-                    <span className="block text-[8px] font-mono opacity-80">Rs. {priceAuto}</span>
+                    <span className="block text-[8px] font-mono opacity-80">PKR {priceAuto}</span>
                   </button>
 
                   <button
@@ -719,7 +733,7 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
                   >
                     <Bell className="w-4 h-4 mx-auto mb-1 opacity-80" />
                     <span className="block text-[10px]">Overflow Alarm</span>
-                    <span className="block text-[8px] font-mono opacity-80">Rs. {priceSiren}</span>
+                    <span className="block text-[8px] font-mono opacity-80">PKR {priceSiren}</span>
                   </button>
                 </div>
               </div>
@@ -792,7 +806,7 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
                       <span className="block text-[10px]">30-Meter Wires Roll</span>
                       <span className="block text-[8px] font-mono opacity-80">Full Roll (Safe/Sealed)</span>
                     </div>
-                    <span className="text-[10px] font-bold font-mono">Rs. {priceCableRoll}</span>
+                    <span className="text-[10px] font-bold font-mono">PKR {priceCableRoll}</span>
                   </button>
 
                   <button
@@ -807,7 +821,7 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
                       <span className="block text-[10px]">Loose by the Meter</span>
                       <span className="block text-[8px] font-mono opacity-80">Pay per Exact Meter</span>
                     </div>
-                    <span className="text-[10px] font-bold font-mono">Rs. {priceCablePerMeter}/m</span>
+                    <span className="text-[10px] font-bold font-mono">PKR {priceCablePerMeter}/m</span>
                   </button>
                 </div>
               </div>
@@ -832,7 +846,7 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
 
                 <div className="border-t border-slate-800/60 pt-2 flex items-center justify-between text-[10px] text-slate-400 font-semibold">
                   <span>Standard Installation Fee:</span>
-                  <span className="font-bold text-slate-200 font-mono">Rs. 1,500</span>
+                  <span className="font-bold text-slate-200 font-mono">PKR 1,500</span>
                 </div>
               </div>
 
@@ -840,7 +854,7 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
               <div className="bg-gradient-to-r from-amber-500/5 to-orange-500/5 border border-amber-500/20 p-3 rounded-xl flex items-center justify-between">
                 <div>
                   <span className="text-[10px] text-slate-400 block font-semibold uppercase">Total Investment Package</span>
-                  <span className="text-base font-black text-amber-400 font-mono">Rs. {grandTotal.toLocaleString()}</span>
+                  <span className="text-base font-black text-amber-400 font-mono">PKR {grandTotal.toLocaleString()}</span>
                 </div>
                 <div className="text-right">
                   <span className="block text-[9px] text-slate-400">Total Signal Cable:</span>
@@ -1117,7 +1131,7 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
                   {(showIndicatorPrintHeader || true) && (
                     <div className="hidden print:block text-center border-b-2 border-black pb-4 mb-5 text-black">
                       <h1 className="text-lg font-bold text-black tracking-tight">{settings.storeName}</h1>
-                      <p className="text-[10px] text-black font-semibold mt-1">Khyber Bazar, Seikarno Square, Peshawar Cantt | PTCL: 091-2565800</p>
+                      <p className="text-[10px] text-black font-semibold mt-1">#03 Sikandro Square, Khyber Bazaar, Peshawar | PTCL: 091-2565800 | Mobile: 0300-5861463</p>
                       <p className="text-[10px] text-black mt-0.5 font-bold uppercase">WATER TANK AUTOMATION & INDICATOR STATEMENT QUOTATION</p>
                       <p className="text-[9px] text-black mt-1">Date: {new Date().toLocaleDateString()}</p>
                     </div>
@@ -1154,32 +1168,32 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
                                 {selectedUnitName} <span className="text-[9px] text-amber-500 block font-mono">{selectedUnitCode}</span>
                               </td>
                               <td className="py-2.5 text-center">1 pc</td>
-                              <td className="py-2.5 text-right font-mono">Rs. {selectedUnitPrice.toLocaleString()}</td>
-                              <td className="py-2.5 text-right font-mono font-bold text-slate-100">Rs. {selectedUnitPrice.toLocaleString()}</td>
+                              <td className="py-2.5 text-right font-mono">PKR {selectedUnitPrice.toLocaleString()}</td>
+                              <td className="py-2.5 text-right font-mono font-bold text-slate-100">PKR {selectedUnitPrice.toLocaleString()}</td>
                             </tr>
                             <tr>
                               <td className="py-2.5 font-medium text-slate-100">
                                 {probesName} <span className="text-[9px] text-slate-500 block font-mono">IND-PROBE-SS</span>
                               </td>
                               <td className="py-2.5 text-center">1 set</td>
-                              <td className="py-2.5 text-right font-mono font-medium text-slate-400">Rs. {priceProbeSet.toLocaleString()}</td>
-                              <td className="py-2.5 text-right font-mono font-bold text-slate-100">Rs. {priceProbeSet.toLocaleString()}</td>
+                              <td className="py-2.5 text-right font-mono font-medium text-slate-400">PKR {priceProbeSet.toLocaleString()}</td>
+                              <td className="py-2.5 text-right font-mono font-bold text-slate-100">PKR {priceProbeSet.toLocaleString()}</td>
                             </tr>
                             <tr>
                               <td className="py-2.5 font-medium text-slate-100">
                                 {cableName} <span className="text-[9px] text-slate-500 block font-mono">{wireOption === "roll" ? "IND-CABLE-30" : "IND-LOOSE"}</span>
                               </td>
                               <td className="py-2.5 text-center">{cableQty} {cableUnit}(s)</td>
-                              <td className="py-2.5 text-right font-mono font-medium text-slate-400">Rs. {(wireOption === "roll" ? priceCableRoll : priceCablePerMeter).toLocaleString()}</td>
-                              <td className="py-2.5 text-right font-mono font-bold text-slate-100">Rs. {cableCost.toLocaleString()}</td>
+                              <td className="py-2.5 text-right font-mono font-medium text-slate-400">PKR {(wireOption === "roll" ? priceCableRoll : priceCablePerMeter).toLocaleString()}</td>
+                              <td className="py-2.5 text-right font-mono font-bold text-slate-100">PKR {cableCost.toLocaleString()}</td>
                             </tr>
                             <tr>
                               <td className="py-2.5 font-medium text-slate-300">
                                 Standard installation accessories (Teflon tape, clips, rawal plugs)
                               </td>
                               <td className="py-2.5 text-center">1 pack</td>
-                              <td className="py-2.5 text-right font-mono font-medium text-slate-400">Rs. {installationAccessories}</td>
-                              <td className="py-2.5 text-right font-mono font-bold text-slate-100">Rs. {installationAccessories}</td>
+                              <td className="py-2.5 text-right font-mono font-medium text-slate-400">PKR {installationAccessories}</td>
+                              <td className="py-2.5 text-right font-mono font-bold text-slate-100">PKR {installationAccessories}</td>
                             </tr>
                             {includePlumberLabor && (
                               <tr>
@@ -1187,8 +1201,8 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
                                   <span>Installer Expert Installation & Commissioning Service</span>
                                 </td>
                                 <td className="py-2.5 text-center">1 Job</td>
-                                <td className="py-2.5 text-right font-mono font-medium text-slate-400">Rs. 1,500</td>
-                                <td className="py-2.5 text-right font-mono font-bold text-emerald-400">Rs. 1,500</td>
+                                <td className="py-2.5 text-right font-mono font-medium text-slate-400">PKR 1,500</td>
+                                <td className="py-2.5 text-right font-mono font-bold text-emerald-400">PKR 1,500</td>
                               </tr>
                             )}
                           </tbody>
@@ -1203,7 +1217,7 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
                       
                       <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl min-w-[200px] text-right">
                         <span className="text-[10px] text-slate-400 font-semibold block leading-none mb-1">TOTAL GRAND ESTIMATE</span>
-                        <span className="text-lg font-black text-amber-400 font-mono">Rs. {grandTotal.toLocaleString()}</span>
+                        <span className="text-lg font-black text-amber-400 font-mono">PKR {grandTotal.toLocaleString()}</span>
                         <span className="text-[8px] text-slate-500 block font-bold leading-none mt-1">Cash / Khata / WhatsApp Payable</span>
                       </div>
                     </div>
@@ -1223,6 +1237,8 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
 
           </div>
         </>
+      ) : (
+        <OnlinePlumberRouter settings={settings} />
       )}
 
     </div>

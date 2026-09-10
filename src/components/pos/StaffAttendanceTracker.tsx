@@ -14,7 +14,8 @@ import {
   Download,
   ShieldCheck,
   ArrowRight,
-  LogIn
+  LogIn,
+  Phone
 } from "lucide-react";
 
 interface StaffAttendanceTrackerProps {
@@ -39,7 +40,7 @@ export const StaffAttendanceTracker: React.FC<StaffAttendanceTrackerProps> = ({
   const [searchStaff, setSearchStaff] = useState<string>("");
 
   // Filter logs
-  const filteredLogs = attendanceLogs.filter((log) => {
+  const filteredLogs = (attendanceLogs || []).filter((log) => {
     if (selectedBranchFilter !== "all" && log.branchId !== selectedBranchFilter) return false;
     if (selectedDate && log.loginDate !== selectedDate) return false;
     if (searchStaff.trim()) {
@@ -53,7 +54,7 @@ export const StaffAttendanceTracker: React.FC<StaffAttendanceTrackerProps> = ({
 
   // Calculate shop opening times for today per branch
   const getBranchOpeningTime = (branchId: string) => {
-    const branchDayLogs = attendanceLogs.filter(
+    const branchDayLogs = (attendanceLogs || []).filter(
       (l) => l.branchId === branchId && l.loginDate === selectedDate
     );
     if (branchDayLogs.length === 0) return null;
@@ -233,12 +234,35 @@ export const StaffAttendanceTracker: React.FC<StaffAttendanceTrackerProps> = ({
                     </td>
 
                     <td className="py-3 px-3">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-100">{log.userName}</span>
-                        <span className="px-1.5 py-0.2 rounded text-[9px] uppercase font-bold bg-slate-800 text-slate-400 border border-slate-700">
-                          {log.userRole}
-                        </span>
-                      </div>
+                      {(() => {
+                        const staffMember = users.find((u) => u.id === log.userId || u.name === log.userName);
+                        return (
+                          <div className="flex items-center gap-2.5">
+                            <img
+                              src={
+                                staffMember?.avatarUrl ||
+                                (staffMember as any)?.avatar ||
+                                "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80"
+                              }
+                              alt={log.userName}
+                              referrerPolicy="no-referrer"
+                              className="w-8 h-8 rounded-full object-cover border border-slate-700 shrink-0"
+                            />
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-bold text-slate-100">{log.userName}</span>
+                                <span className="px-1.5 py-0.2 rounded text-[9px] uppercase font-bold bg-slate-800 text-slate-400 border border-slate-700">
+                                  {log.userRole}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1 text-[10px] text-amber-300 font-mono mt-0.5">
+                                <Phone className="w-2.5 h-2.5 text-amber-400 shrink-0" />
+                                <span>{staffMember?.phone || "0300-5861463"}</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </td>
 
                     <td className="py-3 px-3">

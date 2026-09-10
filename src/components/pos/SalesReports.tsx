@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { Invoice, StoreSettings, UserAccount } from "../../types";
+import { exportAllDataBackup } from "../../utils/posStorage";
 import { 
   BarChart3, 
   TrendingUp, 
@@ -26,7 +27,12 @@ import {
   Check,
   X,
   ShieldCheck,
-  ExternalLink
+  ExternalLink,
+  Sparkles,
+  Smartphone,
+  ChevronDown,
+  Database,
+  FileSpreadsheet
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { InvoiceReceiptModal } from "./InvoiceReceiptModal";
@@ -54,6 +60,47 @@ export const SalesReports: React.FC<SalesReportsProps> = ({
   const [viewInvoice, setViewInvoice] = useState<Invoice | null>(null);
   const [selectedQrInvoice, setSelectedQrInvoice] = useState<Invoice | null>(null);
   const [copiedQrData, setCopiedQrData] = useState(false);
+
+  // Antigravity Agent State
+  const [isAgentRunning, setIsAgentRunning] = useState(false);
+  const [agentResult, setAgentResult] = useState<string | null>(null);
+  const [showAgentModal, setShowAgentModal] = useState(false);
+  const [showReportsExportMenu, setShowReportsExportMenu] = useState(false);
+
+  const runFinancialAnalystAgent = async () => {
+    setIsAgentRunning(true);
+    setAgentResult(null);
+    setShowAgentModal(true);
+
+    try {
+      // Compress data for the agent
+      const salesData = invoices.map(i => ({
+        dt: i.date,
+        b: i.branchId,
+        c: i.cashierName,
+        p: i.paymentMethod,
+        tot: i.grandTotal
+      }));
+
+      const res = await fetch("/api/gemini/financial-analyst-agent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          storeName: settings.storeName,
+          salesData
+        }),
+      });
+
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      
+      setAgentResult(data.text);
+    } catch (err: any) {
+      setAgentResult(`**Agent Execution Failed:**\n\n${err.message}\n\n*Note: Antigravity agents require the backend to be connected with a valid GEMINI_API_KEY that supports the Interactions API and remote environment execution.*`);
+    } finally {
+      setIsAgentRunning(false);
+    }
+  };
 
   // Cancellation Modal state
   const [cancelTargetInvoice, setCancelTargetInvoice] = useState<Invoice | null>(null);
@@ -235,46 +282,113 @@ export const SalesReports: React.FC<SalesReportsProps> = ({
           <div className="flex items-center p-1 bg-slate-950 rounded-xl border border-slate-800">
             <button
               onClick={() => setReportTab("invoices")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+              className={`px-3.5 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 ${
                 reportTab === "invoices"
                   ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
-              <Receipt className="w-3.5 h-3.5" />
+              <Receipt className="w-4 h-4 shrink-0" />
               <span>All Invoices</span>
             </button>
             <button
               onClick={() => setReportTab("performance")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+              className={`px-3.5 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 ${
                 reportTab === "performance"
                   ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
-              <Award className="w-3.5 h-3.5 text-amber-400" />
-              <span>📈 Performance</span>
+              <Award className="w-4 h-4 shrink-0 text-amber-400" />
+              <span>Performance</span>
             </button>
             <button
               onClick={() => setReportTab("shift")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+              className={`px-3.5 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 ${
                 reportTab === "shift"
                   ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
-              <Calendar className="w-3.5 h-3.5" />
-              <span>📋 Shift Sheet</span>
+              <Calendar className="w-4 h-4 shrink-0" />
+              <span>Shift Sheet</span>
             </button>
           </div>
 
           <button
-            onClick={exportInvoicesCSV}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl transition"
+            onClick={runFinancialAnalystAgent}
+            className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-500 rounded-xl transition shadow-lg shadow-indigo-600/30"
           >
-            <Download className="w-3.5 h-3.5" />
-            <span>Export CSV</span>
+            <Sparkles className="w-4 h-4 shrink-0" />
+            <span>Generate PDF Report (AI)</span>
           </button>
+          
+          {/* Rich Sales Reports Export Menu */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowReportsExportMenu(!showReportsExportMenu)}
+              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 rounded-xl transition shadow-sm"
+            >
+              <Download className="w-4 h-4 shrink-0 text-amber-400" />
+              <span>📦 Export Menu (ایکسپورٹ)</span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showReportsExportMenu ? "rotate-180" : ""}`} />
+            </button>
+
+            {showReportsExportMenu && (
+              <div className="absolute right-0 top-11 w-64 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-2 z-50 flex flex-col gap-1.5 animate-in fade-in zoom-in-95">
+                <a
+                  href="/haider_sanitary_pos.apk"
+                  download="haider_sanitary_pos.apk"
+                  onClick={() => setShowReportsExportMenu(false)}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-950 bg-amber-500 hover:bg-amber-400 transition"
+                >
+                  <Smartphone className="w-3.5 h-3.5 shrink-0 text-slate-950" />
+                  <div>
+                    <span>Download 1 APK (.apk)</span>
+                    <span className="block text-[9px] font-medium text-slate-900">اینڈرائیڈ موبائل ایپ انسٹالر</span>
+                  </div>
+                </a>
+
+                <a
+                  href="/haider_sanitary_pos_single_file.html"
+                  download="haider_sanitary_pos_single_file.html"
+                  onClick={() => setShowReportsExportMenu(false)}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition"
+                >
+                  <Download className="w-3.5 h-3.5 shrink-0 text-white" />
+                  <div>
+                    <span>Download 1 File (.html)</span>
+                    <span className="block text-[9px] font-medium text-emerald-100">سنگل فائل (آف لائن)</span>
+                  </div>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowReportsExportMenu(false);
+                    exportInvoicesCSV();
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs font-semibold text-slate-300 hover:bg-slate-800 transition border-t border-slate-800 mt-1 pt-2"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 shrink-0 text-blue-400" />
+                  <span>Export Invoices Report (CSV)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowReportsExportMenu(false);
+                    exportAllDataBackup();
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs font-semibold text-purple-300 hover:bg-purple-900/20 transition"
+                >
+                  <Database className="w-3.5 h-3.5 shrink-0 text-purple-400" />
+                  <span>Backup All Sales & Store (JSON)</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -575,7 +689,7 @@ export const SalesReports: React.FC<SalesReportsProps> = ({
                 className="px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-xs text-slate-300 outline-none"
               >
                 <option value="all">All Branches</option>
-                <option value="branch-1">Branch 1 (Main HQ - Haider Ali)</option>
+                <option value="branch-1">Branch 1 (Main HQ - Qumber Ali Shah)</option>
                 <option value="branch-2">Branch 2 (City Outlet - Brother)</option>
                 <option value="branch-3">Branch 3 (Bypass Outlet - Cousin)</option>
               </select>
@@ -923,7 +1037,7 @@ export const SalesReports: React.FC<SalesReportsProps> = ({
               <div className="mt-2.5 text-center">
                 <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-300 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20">
                   <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>Official Verified Bill • Haider Sanitary</span>
+                  <span>Official Verified Bill • Qumber Sanitary</span>
                 </span>
                 <p className="text-[10px] text-slate-400 mt-1">
                   موبائل کیمرے یا کسی بھی بارکوڈ ریڈر سے اسکین کر کے بل کی اصلیت چیک کریں
@@ -970,7 +1084,7 @@ export const SalesReports: React.FC<SalesReportsProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  const verificationText = `Haider Sanitary Verified Invoice #${selectedQrInvoice.invoiceNumber}\nCustomer: ${selectedQrInvoice.customerName}\nDate: ${new Date(selectedQrInvoice.date).toLocaleDateString()}\nTotal: ${settings.currencySymbol} ${selectedQrInvoice.grandTotal}\nPaid: ${settings.currencySymbol} ${selectedQrInvoice.amountPaid}\nDue: ${settings.currencySymbol} ${selectedQrInvoice.balanceDue}`;
+                  const verificationText = `Qumber Sanitary Verified Invoice #${selectedQrInvoice.invoiceNumber}\nCustomer: ${selectedQrInvoice.customerName}\nDate: ${new Date(selectedQrInvoice.date).toLocaleDateString()}\nTotal: ${settings.currencySymbol} ${selectedQrInvoice.grandTotal}\nPaid: ${settings.currencySymbol} ${selectedQrInvoice.amountPaid}\nDue: ${settings.currencySymbol} ${selectedQrInvoice.balanceDue}`;
                   navigator.clipboard.writeText(verificationText);
                   setCopiedQrData(true);
                   setTimeout(() => setCopiedQrData(false), 2500);
@@ -1010,6 +1124,47 @@ export const SalesReports: React.FC<SalesReportsProps> = ({
                   بند کریں
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Antigravity Agent Modal */}
+      {showAgentModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-indigo-500/40 rounded-3xl max-w-2xl w-full p-6 shadow-2xl animate-in zoom-in-95 text-slate-200">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-slate-100 text-sm">Qumber Financial Analyst Agent</h3>
+                  <p className="text-[10px] text-slate-400">Powered by Gemini 3.8 Flash & Antigravity</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAgentModal(false)}
+                className="p-2 text-slate-400 hover:text-rose-400 hover:bg-slate-800/50 rounded-xl transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="py-6 min-h-[300px] flex flex-col justify-center">
+              {isAgentRunning ? (
+                <div className="flex flex-col items-center justify-center space-y-4 text-center">
+                  <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
+                  <div>
+                    <h4 className="font-bold text-slate-200">Analyzing Sales & Generating PDF...</h4>
+                    <p className="text-xs text-slate-400 mt-1">The Antigravity agent is writing Python code, plotting charts with matplotlib, and compiling the PDF report in a sandboxed environment.</p>
+                  </div>
+                </div>
+              ) : agentResult ? (
+                <div className="text-sm text-slate-300 space-y-3 max-h-[60vh] overflow-y-auto whitespace-pre-wrap font-mono bg-slate-950 p-4 rounded-xl border border-slate-800">
+                  {agentResult}
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

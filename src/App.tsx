@@ -8,7 +8,12 @@ import {
   KhataTransaction,
   Branch,
   StaffAttendanceLog,
-  WhatsAppOrder
+  WhatsAppOrder,
+  OnlineAiOrder,
+  CartItem,
+  MotionSnapshot,
+  StaffMessage,
+  BusinessExpense
 } from "./types";
 import {
   getStoredProducts,
@@ -36,24 +41,69 @@ import {
   saveStoredWhatsAppOrders,
   getStoredTheme,
   saveStoredTheme,
-  AppTheme
+  AppTheme,
+  exportAllDataBackup,
+  getLastBackupDate,
+  getStoredMotionSnapshots,
+  addMotionSnapshot,
+  getStoredStaffMessages,
+  addStaffMessage,
+  getStoredExpenses,
+  addExpense,
+  getMaintenanceStatus,
+  recordMaintenance
 } from "./utils/posStorage";
+import { LockScreen } from "./components/pos/LockScreen";
 import { PosHeader, PosTab } from "./components/pos/PosHeader";
+import { SuperAdminDashboard } from "./components/pos/SuperAdminDashboard";
+import { BranchOwnerDashboard } from "./components/pos/BranchOwnerDashboard";
 import { BillingCounter } from "./components/pos/BillingCounter";
 import { InventoryManager } from "./components/pos/InventoryManager";
 import { CustomerKhata } from "./components/pos/CustomerKhata";
 import { SalesReports } from "./components/pos/SalesReports";
 import { BranchNetworkManager } from "./components/pos/BranchNetworkManager";
 import { WhatsAppHub } from "./components/pos/WhatsAppHub";
+import { MotionSecurityHub } from "./components/pos/MotionSecurityHub";
 import { StaffAttendanceTracker } from "./components/pos/StaffAttendanceTracker";
+import { StaffSecretHub } from "./components/pos/StaffSecretHub";
+import { ExpenseLedger } from "./components/pos/ExpenseLedger";
+import { ExportView } from "./components/pos/ExportView";
 import { PlumbingAIEstimator } from "./components/pos/PlumbingAIEstimator";
+import { AiSalesMarketingHub } from "./components/pos/AiSalesMarketingHub";
 import { PosSettings } from "./components/pos/PosSettings";
+import { PosExportCenter } from "./components/pos/PosExportCenter";
 import { ReturnItemModal } from "./components/pos/ReturnItemModal";
 import { GlobalVoiceCommand } from "./components/pos/GlobalVoiceCommand";
 import { FloatingActionMenu } from "./components/pos/FloatingActionMenu";
+import { DirectInstallModal } from "./components/pos/DirectInstallModal";
+import { AiPriceListUploaderModal } from "./components/pos/AiPriceListUploaderModal";
+import { Download, Smartphone, Package, Sparkles, Zap, Camera, Crown } from "lucide-react";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<PosTab>("billing");
+  const [isUnlocked, setIsUnlocked] = useState<boolean>(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallModal, setShowInstallModal] = useState<boolean>(false);
+  const [showAiUploadModal, setShowAiUploadModal] = useState<boolean>(false);
+
+  const [showScanner, setShowScanner] = useState<boolean>(false);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    };
+  }, []);
+  const [activeTab, setActiveTab] = useState<PosTab>(() => {
+    const u = getActiveUser();
+    if (u?.isSuperAdmin || u?.role === "admin") return "super_admin_dashboard";
+    if (u?.role === "manager") return "branch_owner_dashboard";
+    return "billing";
+  });
   const [showReturnModal, setShowReturnModal] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>("");
 
@@ -69,7 +119,37 @@ export default function App() {
   const [activeBranchId, setActiveBranchIdState] = useState<string>(getActiveBranchId);
   const [whatsappOrders, setWhatsappOrders] = useState<WhatsAppOrder[]>(getStoredWhatsAppOrders);
   const [attendanceLogs, setAttendanceLogs] = useState<StaffAttendanceLog[]>(getStoredAttendanceLogs);
+  const [motionSnapshots, setMotionSnapshots] = useState<MotionSnapshot[]>(getStoredMotionSnapshots);
+  const [staffMessages, setStaffMessages] = useState<StaffMessage[]>(getStoredStaffMessages);
+  const [expenses, setExpenses] = useState<BusinessExpense[]>(getStoredExpenses);
   const [theme, setTheme] = useState<AppTheme>(getStoredTheme);
+
+  // Daily Backup Reminder
+  useEffect(() => {
+    if (settings.enableDailyBackup) {
+      const today = new Date().toISOString().slice(0, 10);
+      const lastBackup = getLastBackupDate();
+      
+      if (lastBackup !== today) {
+        localStorage.setItem("hps_pos_last_backup_date", today);
+      }
+    }
+  }, [settings.enableDailyBackup]);
+
+  // 3-Day Maintenance Check
+  useEffect(() => {
+    const { needsMaintenance, daysSince } = getMaintenanceStatus();
+    if (needsMaintenance && activeUser) {
+      setTimeout(() => {
+        showToast(`🛠️ Maintenance Reminder: ${daysSince} days since last system check. Please perform a manual backup.`);
+      }, 5000);
+    }
+  }, [activeUser]);
+
+  const handleMaintenanceComplete = () => {
+    recordMaintenance();
+    showToast("✅ Maintenance cycle recorded. Next check in 3 days.");
+  };
 
   const handleThemeChange = (newTheme: AppTheme) => {
     setTheme(newTheme);
@@ -127,6 +207,31 @@ export default function App() {
     showToast(`حاضری لاگ ان محفوظ: ${user.name} at ${newLog.loginTime}`);
   };
 
+  const handleAddMotionSnapshot = (snapData: Omit<MotionSnapshot, "id" | "timestamp" | "timeFormatted" | "dateFormatted">) => {
+    const newSnap = addMotionSnapshot(snapData);
+    setMotionSnapshots(getStoredMotionSnapshots());
+    showToast(`📸 کیمرہ سنیپ شاٹ محفوظ ہو گیا: ${snapData.title}`);
+  };
+
+  const handleAddStaffMessage = (msgData: Omit<StaffMessage, "id" | "timestamp">) => {
+    addStaffMessage(msgData);
+    setStaffMessages(getStoredStaffMessages());
+  };
+
+  const handleAddExpense = (expData: Omit<BusinessExpense, "id">) => {
+    addExpense(expData);
+    setExpenses(getStoredExpenses());
+    showToast(`💰 خرچہ محفوظ ہو گیا: ${expData.description}`);
+  };
+
+  const handleUpdateInvoice = (updatedInvoice: Invoice) => {
+    const newInvoices = invoices.map((i) => (i.id === updatedInvoice.id ? updatedInvoice : i));
+    setInvoices(newInvoices);
+    saveStoredInvoices(newInvoices);
+    setMotionSnapshots(getStoredMotionSnapshots());
+    showToast(`✓ انوائس ${updatedInvoice.invoiceNumber} کا گیٹ پاس اور ڈسپیچ ریکارڈ اپڈیٹ ہو گیا!`);
+  };
+
   const handleSelectBranch = (branchId: string) => {
     setActiveBranchIdState(branchId);
     saveActiveBranchId(branchId);
@@ -136,6 +241,13 @@ export default function App() {
     setActiveUserState(user);
     saveActiveUser(user);
     setAttendanceLogs(getStoredAttendanceLogs());
+    if (user.isSuperAdmin || user.role === "admin") {
+      setActiveTab("super_admin_dashboard");
+    } else if (user.role === "manager") {
+      setActiveTab("branch_owner_dashboard");
+    } else {
+      setActiveTab("billing");
+    }
   };
 
   // Sale saved from billing counter
@@ -230,6 +342,13 @@ export default function App() {
     showToast(`✅ Successfully returned ${returnQty} unit(s) and restocked inventory! Refund: Rs. ${refundAmount.toLocaleString()}`);
   };
 
+  // Global AI Multimodal Products Importer
+  const handleGlobalImportProducts = (newProducts: Product[]) => {
+    const updated = [...newProducts, ...products];
+    handleUpdateProducts(updated);
+    showToast(`✅ ${newProducts.length} پروڈکٹس کامیابی سے انوینٹری میں شامل کر دی گئیں!`);
+  };
+
   // Cancel / Void Entire Invoice
   const handleCancelInvoice = (invoiceId: string, reason: string) => {
     const targetInv = invoices.find((i) => i.id === invoiceId);
@@ -247,7 +366,7 @@ export default function App() {
       ...targetInv,
       status: "cancelled",
       cancelledAt: new Date().toISOString(),
-      cancelledBy: activeUser ? `${activeUser.name} (${activeUser.role})` : "Haider Ali (Admin)",
+      cancelledBy: activeUser ? `${activeUser.name} (${activeUser.role})` : "Qumber Ali Shah (Admin)",
       cancelledReason: reason || "Voided by manager",
       notes: `${targetInv.notes || ""} [CANCELLED on ${new Date().toLocaleDateString()}: ${reason}]`.trim(),
     };
@@ -320,6 +439,108 @@ export default function App() {
     showToast(`Khata entry saved for ${updatedCustomer.name}.`);
   };
 
+  // Convert 24/7 AI Online Order into formal POS Invoice
+  const handleConvertOnlineOrderToInvoice = (order: OnlineAiOrder) => {
+    let updatedProducts = [...products];
+    const cartItems: CartItem[] = order.items.map((it) => {
+      let matchedProd = products.find(
+        (p) =>
+          p.name.toLowerCase().includes(it.productName.toLowerCase()) ||
+          it.productName.toLowerCase().includes(p.name.toLowerCase())
+      );
+
+      if (!matchedProd) {
+        matchedProd = {
+          id: `prod-ai-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          code: `AI-${Math.floor(100 + Math.random() * 900)}`,
+          name: it.productName,
+          category: "Bath Set",
+          brand: (it.brand as any) || "Master",
+          unit: "Piece",
+          costPrice: it.unitPrice * 0.75,
+          salePrice: it.unitPrice,
+          stockQuantity: 50,
+          minStockAlert: 5,
+        };
+        updatedProducts.push(matchedProd);
+      }
+
+      updatedProducts = updatedProducts.map((p) =>
+        p.id === matchedProd!.id
+          ? { ...p, stockQuantity: Math.max(0, p.stockQuantity - it.quantity) }
+          : p
+      );
+
+      return {
+        product: matchedProd,
+        quantity: it.quantity,
+        unitPrice: it.unitPrice,
+        discountAmount: 0,
+        total: it.total,
+      };
+    });
+
+    let updatedCustomers = [...customers];
+    let matchedCust = customers.find(
+      (c) =>
+        c.phone === order.customerPhone ||
+        c.name.toLowerCase() === order.customerName.toLowerCase()
+    );
+
+    if (!matchedCust) {
+      matchedCust = {
+        id: `cust-ai-${Date.now()}`,
+        name: order.customerName,
+        phone: order.customerPhone,
+        address: order.customerAddress,
+        totalPurchases: order.totalAmount,
+        outstandingKhata: 0,
+        creditLimit: 50000,
+        createdAt: new Date().toISOString(),
+      };
+      updatedCustomers.push(matchedCust);
+    } else {
+      matchedCust = {
+        ...matchedCust,
+        totalPurchases: matchedCust.totalPurchases + order.totalAmount,
+      };
+      updatedCustomers = updatedCustomers.map((c) =>
+        c.id === matchedCust!.id ? matchedCust! : c
+      );
+    }
+
+    const assignedBranch =
+      branches.find((b) => b.id === order.assignedBranchId) || branches[0];
+
+    const newInvoice: Invoice = {
+      id: `inv-${Date.now()}`,
+      invoiceNumber: `INV-${new Date().getFullYear()}-${invoices.length + 1001}`,
+      date: new Date().toISOString(),
+      customerId: matchedCust.id,
+      customerName: matchedCust.name,
+      customerPhone: matchedCust.phone,
+      items: cartItems,
+      subtotal: order.subtotal,
+      discount: order.discount,
+      tax: 0,
+      grandTotal: order.totalAmount,
+      amountPaid: order.paymentMethod === "cod" ? 0 : order.totalAmount,
+      balanceDue: order.paymentMethod === "cod" ? order.totalAmount : 0,
+      paymentMethod: order.paymentMethod === "cod" ? "cash" : "cash",
+      cashierName: `${activeUser.name} (24/7 AI Online Engine)`,
+      cashierId: activeUser.id,
+      cashierRole: activeUser.role,
+      counterStation: "24/7 AI Online Terminal",
+      branchId: assignedBranch.id,
+      branchName: assignedBranch.name,
+      status: "completed",
+      notes: `Generated from 24/7 AI Online Order #${order.orderNumber}. Delivery Address: ${order.customerAddress}`,
+    };
+
+    handleSaveInvoice(newInvoice, updatedProducts, updatedCustomers);
+    showToast(`✅ Order #${order.orderNumber} converted to Official Invoice #${newInvoice.invoiceNumber}! Stock reserved in ${assignedBranch.name}.`);
+  };
+
   // Live Metrics
   const todaySales = useMemo(() => {
     const today = new Date().toDateString();
@@ -353,8 +574,23 @@ export default function App() {
     amber: "bg-[#1C1917] text-amber-50",
   };
 
+  if (!isUnlocked) {
+    return (
+      <LockScreen 
+        users={users} 
+        settings={settings} 
+        onUnlock={(user) => {
+          saveActiveUser(user);
+          setActiveUserState(user);
+          setIsUnlocked(true);
+        }}
+        onUpdateUsers={handleUpdateUsers}
+      />
+    );
+  }
+
   return (
-    <div className={`min-h-screen ${themeClassMap[theme] || themeClassMap.slate} flex flex-col font-sans selection:bg-blue-600 selection:text-white transition-colors duration-300`}>
+    <div className={`min-h-screen ${themeClassMap[theme] || themeClassMap.slate} flex flex-col font-sans selection:bg-blue-600 selection:text-white transition-colors duration-300 overflow-x-hidden`}>
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-4 right-4 z-50 bg-blue-600 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-2xl border border-blue-400/40 animate-in slide-in-from-top-3 flex items-center gap-2">
@@ -375,16 +611,56 @@ export default function App() {
         onSwitchUser={handleSwitchUser}
         onUpdateUsers={handleUpdateUsers}
         onOpenReturnModal={() => setShowReturnModal(true)}
+        onOpenScanner={() => {
+          setActiveTab("billing");
+          setShowScanner(true);
+        }}
         todaySales={todaySales}
         todayInvoicesCount={todayInvoicesCount}
         lowStockCount={lowStockCount}
         totalUdhaar={totalUdhaar}
         currentTheme={theme}
         onThemeChange={handleThemeChange}
+        onLock={() => setIsUnlocked(false)}
       />
 
       {/* Dynamic Views */}
       <main className="flex-1">
+        {activeTab === "super_admin_dashboard" && (
+          <SuperAdminDashboard
+            activeUser={activeUser}
+            users={users}
+            branches={branches}
+            products={products}
+            invoices={invoices}
+            expenses={expenses}
+            customers={customers}
+            settings={settings}
+            onSwitchBranch={handleSelectBranch}
+            onNavigateTab={(tab) => setActiveTab(tab)}
+            onUpdateUsers={handleUpdateUsers}
+            onUpdateBranches={handleUpdateBranches}
+            onOpenInstallModal={() => setShowInstallModal(true)}
+          />
+        )}
+
+        {activeTab === "branch_owner_dashboard" && (
+          <BranchOwnerDashboard
+            activeUser={activeUser}
+            activeBranch={branches.find((b) => b.id === activeUser.branchId) || branches[0]}
+            products={products}
+            invoices={invoices}
+            expenses={expenses}
+            customers={customers}
+            settings={settings}
+            branches={branches}
+            users={users}
+            onUpdateUsers={handleUpdateUsers}
+            onNavigateTab={(tab) => setActiveTab(tab)}
+            onOpenInstallModal={() => setShowInstallModal(true)}
+          />
+        )}
+
         {activeTab === "billing" && (
           <BillingCounter
             products={products}
@@ -395,6 +671,8 @@ export default function App() {
             onAddNewCustomer={handleAddNewCustomer}
             onOpenAiEstimator={() => setActiveTab("ai_estimator")}
             onGoToInventory={() => setActiveTab("inventory")}
+            autoOpenScanner={showScanner}
+            onScannerOpened={() => setShowScanner(false)}
           />
         )}
 
@@ -449,6 +727,19 @@ export default function App() {
           />
         )}
 
+        {activeTab === "motion_security" && (
+          <MotionSecurityHub
+            snapshots={motionSnapshots}
+            invoices={invoices}
+            branches={branches}
+            activeBranch={branches.find((b) => b.id === (activeBranchId === "all" ? activeUser.branchId : activeBranchId)) || branches[0]}
+            activeUser={activeUser}
+            settings={settings}
+            onAddSnapshot={handleAddMotionSnapshot}
+            onUpdateInvoice={handleUpdateInvoice}
+          />
+        )}
+
         {activeTab === "attendance" && (
           <StaffAttendanceTracker
             users={users}
@@ -460,11 +751,69 @@ export default function App() {
           />
         )}
 
+        {activeTab === "staff_secret_hub" && (
+          <StaffSecretHub
+            activeUser={activeUser}
+            allUsers={users}
+            messages={staffMessages}
+            branches={branches}
+            onSendMessage={handleAddStaffMessage}
+          />
+        )}
+        
+        {activeTab === "expense_ledger" && (activeUser.isSuperAdmin || activeUser.role === "admin" || activeUser.role === "manager") && (
+          <ExpenseLedger
+            expenses={expenses}
+            activeUser={activeUser}
+            branches={branches}
+            onAddExpense={handleAddExpense}
+          />
+        )}
+
+        {activeTab === "export" && <ExportView />}
+
         {activeTab === "ai_estimator" && (
           <PlumbingAIEstimator
             products={products}
             settings={settings}
           />
+        )}
+
+        {activeTab === "ai_hub" && (
+          <div className="max-w-7xl mx-auto p-4 md:p-6">
+            <AiSalesMarketingHub
+              products={products}
+              branches={branches}
+              currentBranchId={activeBranchId === "all" ? activeUser.branchId || "branch-1" : activeBranchId}
+              settings={settings}
+              onConvertToInvoice={handleConvertOnlineOrderToInvoice}
+            />
+          </div>
+        )}
+
+        {activeTab === "export" && (
+          (activeUser.isSuperAdmin || activeUser.role === "admin") ? (
+            <PosExportCenter
+              settings={settings}
+              onOpenInstallModal={() => setShowInstallModal(true)}
+            />
+          ) : (
+            <div className="max-w-md mx-auto my-16 p-6 bg-slate-900 border border-amber-500/40 rounded-3xl text-center text-slate-200 shadow-2xl">
+              <div className="w-12 h-12 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto mb-3">
+                <Crown className="w-6 h-6" />
+              </div>
+              <h3 className="font-extrabold text-lg text-white mb-1">صرف برائے اونر / ایڈمن</h3>
+              <p className="text-xs text-slate-400 mb-5 leading-relaxed">
+                یہ تمام ڈاؤنلوڈز اور انسٹالیشن گائیڈ صرف اونر (حیدر علی) کے ذاتی ڈیش بورڈ پر مقفل ہیں۔ دوسرے ملازمین کے لیے یہ سیکشن بند ہے۔
+              </p>
+              <button
+                onClick={() => setActiveTab("billing")}
+                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs rounded-xl transition cursor-pointer"
+              >
+                واپس کاؤنٹر جائیں
+              </button>
+            </div>
+          )
         )}
 
         {activeTab === "settings" && (
@@ -476,9 +825,26 @@ export default function App() {
             onUpdateUsers={handleUpdateUsers}
             currentTheme={theme}
             onThemeChange={handleThemeChange}
+            onMaintenance={handleMaintenanceComplete}
           />
         )}
       </main>
+
+      {/* Direct 1-Click Install Modal */}
+      <DirectInstallModal
+        isOpen={showInstallModal}
+        onClose={() => setShowInstallModal(false)}
+        deferredPrompt={deferredPrompt}
+        onPromptTriggered={() => setDeferredPrompt(null)}
+      />
+
+      {/* AI Multimodal Price List / Photo / PDF Auto-Categorizer Modal */}
+      <AiPriceListUploaderModal
+        isOpen={showAiUploadModal}
+        onClose={() => setShowAiUploadModal(false)}
+        onImportProducts={handleGlobalImportProducts}
+        targetBranchId={activeBranchId}
+      />
 
       {/* Return Item Modal */}
       {showReturnModal && (

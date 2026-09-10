@@ -1,6 +1,6 @@
 {
   "name": "Haider Pipe and Sanitary Store",
-  "description": "Point-of-sale, wholesale and retail billing, inventory management, customer khata, and multi-branch network for Haider Pipe and Sanitary store.",
-  "requestFramePermissions": ["camera"],
+  "description": "HaiderSanitary brand building, customer trust, and dream home sanitary ware with 24/7 Generative AI sales, marketing, and multi-branch online order fulfillment across 3 branches.",
+  "requestFramePermissions": ["camera", "geolocation", "publickey-credentials-get"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -152,7 +152,7 @@ export const WhatsAppHub: React.FC<WhatsAppHubProps> = ({
       shortName: "Branch 1 (Head HQ)",
       number: "+92 300 5861464",
       cleanNumber: "923005861464",
-      manager: "Haider Ali (Owner & Super Admin)",
+      manager: "Qumber Ali Shah (Owner & Super Admin)",
       badge: "Main HQ Master",
       color: "blue",
     },
@@ -178,8 +178,10 @@ export const WhatsAppHub: React.FC<WhatsAppHubProps> = ({
     },
   ];
 
+  const safeWhatsAppOrders = Array.isArray(whatsappOrders) ? whatsappOrders : [];
+
   // Filtered orders
-  const filteredOrders = whatsappOrders.filter((order) => {
+  const filteredOrders = safeWhatsAppOrders.filter((order) => {
     if (selectedBranchFilter !== "all" && order.branchId !== selectedBranchFilter) return false;
     if (statusFilter !== "all" && order.status !== statusFilter) return false;
     if (searchQuery.trim()) {
@@ -232,9 +234,19 @@ export const WhatsAppHub: React.FC<WhatsAppHubProps> = ({
 
   // Helper to trigger direct WhatsApp message
   const sendWhatsAppDirect = (phone: string, message: string) => {
-    const cleanPhone = phone.replace(/[^0-9]/g, "");
-    const formattedPhone = cleanPhone.startsWith("0") ? `92${cleanPhone.slice(1)}` : cleanPhone;
-    const url = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
+    let cleanPhone = phone ? phone.replace(/[^0-9]/g, "") : "";
+    if (cleanPhone.startsWith("0")) {
+      cleanPhone = `92${cleanPhone.slice(1)}`;
+    } else if (!cleanPhone.startsWith("92") && cleanPhone.length === 10) {
+      cleanPhone = `92${cleanPhone}`;
+    }
+
+    if (!cleanPhone || cleanPhone.length < 10) {
+      alert("Please enter a valid WhatsApp phone number.");
+      return;
+    }
+
+    const url = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
   };
 
@@ -312,7 +324,7 @@ export const WhatsAppHub: React.FC<WhatsAppHubProps> = ({
                 </div>
                 <div>
                   <span className="font-bold text-slate-100 block text-xs">Haider Sanitary Staff & Branches (خفیہ گروپ)</span>
-                  <span className="text-[9px] text-emerald-400 font-medium">Hamza, Asad, Haider, You are active</span>
+                  <span className="text-[9px] text-emerald-400 font-medium">Asad, Hussnain, Qumber, You are active</span>
                 </div>
               </div>
               <span className="text-[10px] text-slate-400 bg-slate-800/60 px-2 py-0.5 rounded-full font-mono">
@@ -479,7 +491,7 @@ export const WhatsAppHub: React.FC<WhatsAppHubProps> = ({
                   <button
                     onClick={() => sendWhatsAppDirect("923005861464", "بھائی فورا کسٹمر کے سامنے مجھے کال کریں اور بولیں کہ ہیڈ آفس سے ریٹ لاک ہے، اس سے کم ریٹ نہیں ہو سکتا۔")}
                     className="p-2 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-lg transition"
-                    title="Send Directly to Haider"
+                    title="Send Directly to Qumber"
                   >
                     <Send className="w-3.5 h-3.5" />
                   </button>
@@ -529,8 +541,8 @@ export const WhatsAppHub: React.FC<WhatsAppHubProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {branchWhatsAppNumbers.map((b) => {
           const isMain = b.branchId === "branch-1";
-          const countOrders = whatsappOrders.filter((o) => o.branchId === b.branchId).length;
-          const pendingCount = whatsappOrders.filter((o) => o.branchId === b.branchId && (o.status === "new" || o.status === "confirmed")).length;
+          const countOrders = safeWhatsAppOrders.filter((o) => o.branchId === b.branchId).length;
+          const pendingCount = safeWhatsAppOrders.filter((o) => o.branchId === b.branchId && (o.status === "new" || o.status === "confirmed")).length;
 
           return (
             <div

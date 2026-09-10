@@ -97,7 +97,7 @@ export const BranchNetworkManager: React.FC<BranchNetworkManagerProps> = ({
     }))
   );
 
-  const displayedCameras = allCameras.filter((c) => {
+  const displayedCameras = (allCameras || []).filter((c) => {
     if (selectedBranchFilter !== "all" && c.branchId !== selectedBranchFilter) return false;
     if (selectedCamFilterType !== "all" && c.feedType !== selectedCamFilterType) return false;
     return true;
@@ -105,14 +105,14 @@ export const BranchNetworkManager: React.FC<BranchNetworkManagerProps> = ({
 
   // Calculate metrics per branch
   const getBranchMetrics = (branchId: string) => {
-    const branchInvoices = invoices.filter((inv) => {
+    const branchInvoices = (invoices || []).filter((inv) => {
       if (branchId === "branch-1") return inv.branchId === "branch-1" || !inv.branchId;
       return inv.branchId === branchId;
     });
 
     const totalSales = branchInvoices.reduce((sum, inv) => sum + inv.grandTotal, 0);
     const invoiceCount = branchInvoices.length;
-    const branchStaff = users.filter((u) => u.branchId === branchId);
+    const branchStaff = (users || []).filter((u) => u.branchId === branchId);
 
     return { totalSales, invoiceCount, branchStaff, branchInvoices };
   };
@@ -137,7 +137,7 @@ export const BranchNetworkManager: React.FC<BranchNetworkManagerProps> = ({
               </h2>
               <span className="px-2 py-0.5 rounded-full bg-blue-500/20 border border-blue-500/30 text-blue-300 font-bold text-[10px] flex items-center gap-1">
                 <ShieldCheck className="w-3 h-3" />
-                <span>Super Admin: Haider Ali</span>
+                <span>Super Admin: Qumber Ali Shah</span>
               </span>
             </div>
             <p className="text-slate-400 text-xs mt-0.5">
@@ -441,7 +441,7 @@ export const BranchNetworkManager: React.FC<BranchNetworkManagerProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 font-mono text-xs">
-                {invoices
+                {(invoices || [])
                   .filter((inv) => {
                     if (selectedBranchFilter === "all") return true;
                     if (selectedBranchFilter === "branch-1") return inv.branchId === "branch-1" || !inv.branchId;
@@ -535,7 +535,7 @@ export const BranchNetworkManager: React.FC<BranchNetworkManagerProps> = ({
 
               <a
                 href={`https://www.google.com/search?q=${encodeURIComponent(
-                  `CCTV IP Camera ${fullscreenCam.ipAddress} Haider Pipe Store`
+                  `CCTV IP Camera ${fullscreenCam.ipAddress} Qumber Pipe Store`
                 )}`}
                 target="_blank"
                 rel="noreferrer"

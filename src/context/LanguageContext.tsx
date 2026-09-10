@@ -15,7 +15,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   useEffect(() => {
     const stored = localStorage.getItem('pos_language') as AppLanguage;
-    if (stored && ['en', 'ur', 'ps'].includes(stored)) {
+    if (stored && ['en', 'ur', 'ps', 'mix'].includes(stored)) {
       setLanguageState(stored);
     }
   }, []);

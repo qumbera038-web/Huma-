@@ -54,7 +54,7 @@ export const StockAlertDashboard: React.FC<StockAlertDashboardProps> = ({
 
   // All products that are currently below or equal to their minStockAlert
   const allAlertProducts = useMemo(() => {
-    return products.filter((p) => p.stockQuantity <= p.minStockAlert);
+    return (products || []).filter((p) => p.stockQuantity <= p.minStockAlert);
   }, [products]);
 
   // Unique brands among alert products
@@ -302,7 +302,7 @@ export const StockAlertDashboard: React.FC<StockAlertDashboardProps> = ({
           // Re-draw small header on new page
           doc.setFont("helvetica", "bold");
           doc.setFontSize(8);
-          doc.text(`Haider Sanitary - Restocking List (Page Continued)`, 14, y);
+          doc.text(`Qumber Sanitary - Restocking List (Page Continued)`, 14, y);
           y += 5;
         }
 

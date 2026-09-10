@@ -36,7 +36,8 @@ import {
   ExternalLink,
   QrCode,
   FileDown,
-  PackageCheck
+  PackageCheck,
+  Wrench
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { exportAllDataBackup, resetAllData, AppTheme } from "../../utils/posStorage";
@@ -50,6 +51,7 @@ interface PosSettingsProps {
   onUpdateUsers: (newUsers: UserAccount[]) => void;
   currentTheme?: AppTheme;
   onThemeChange?: (theme: AppTheme) => void;
+  onMaintenance?: () => void;
 }
 
 export const PosSettings: React.FC<PosSettingsProps> = ({
@@ -60,6 +62,7 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
   onUpdateUsers,
   currentTheme = "slate",
   onThemeChange,
+  onMaintenance,
 }) => {
   const [storeName, setStoreName] = useState(settings.storeName);
   const [tagline, setTagline] = useState(settings.tagline);
@@ -68,6 +71,7 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
   const [ntn, setNtn] = useState(settings.ntn || "");
   const [currencySymbol, setCurrencySymbol] = useState(settings.currencySymbol);
   const [receiptFooter, setReceiptFooter] = useState(settings.receiptFooter);
+  const [enableDailyBackup, setEnableDailyBackup] = useState(settings.enableDailyBackup ?? true);
   const [savedNotice, setSavedNotice] = useState(false);
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
 
@@ -115,6 +119,7 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
       ntn: ntn.trim() || undefined,
       currencySymbol: currencySymbol.trim(),
       receiptFooter: receiptFooter.trim(),
+      enableDailyBackup,
     };
     onUpdateSettings(updated);
     setSavedNotice(true);
@@ -231,13 +236,52 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={exportAllDataBackup}
-          className="flex items-center gap-1.5 px-4 py-2 font-semibold bg-white/5 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl transition shadow-sm"
-        >
-          <Download className="w-4 h-4 text-blue-400" />
-          <span>Backup All Data (JSON)</span>
-        </button>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <a
+            href="/haider_sanitary_pos_single_file.html"
+            download="haider_sanitary_pos_single_file.html"
+            className="flex items-center justify-center gap-1.5 px-3.5 py-2 font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl transition shadow-md shadow-emerald-900/30 text-xs"
+            title="Download 1-File Standalone Offline HTML POS Application (No server required)"
+          >
+            <Download className="w-4 h-4 text-emerald-200" />
+            <span>1 File Standalone (.html)</span>
+          </a>
+
+          <a
+            href="/haider_sanitary_pos.apk"
+            download="haider_sanitary_pos.apk"
+            className="flex items-center justify-center gap-1.5 px-3.5 py-2 font-bold bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-slate-950 rounded-xl transition shadow-md shadow-amber-900/30 text-xs"
+            title="Download 1 Android APK Installer Package (.apk)"
+          >
+            <Smartphone className="w-4 h-4 text-slate-950" />
+            <span>1 Android APK (.apk)</span>
+          </a>
+
+          <button
+            onClick={exportAllDataBackup}
+            className="flex items-center justify-center gap-1.5 px-3.5 py-2 font-semibold bg-white/5 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl transition shadow-sm text-xs"
+          >
+            <Download className="w-4 h-4 text-blue-400" />
+            <span>Backup Data (JSON)</span>
+          </button>
+
+          <button
+            onClick={onMaintenance}
+            className="flex items-center justify-center gap-1.5 px-3.5 py-2 font-semibold bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-200 border border-indigo-500/30 rounded-xl transition shadow-sm text-xs"
+          >
+            <Wrench className="w-4 h-4 text-indigo-400" />
+            <span>System Maintenance (3-Day)</span>
+          </button>
+
+          <a
+            href="/haider_sanitary_full_code.txt"
+            download="haider_sanitary_full_code.txt"
+            className="flex items-center justify-center gap-1.5 px-3.5 py-2 font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl transition shadow-sm text-xs"
+          >
+            <FileCode className="w-4 h-4 text-amber-400" />
+            <span>Download Source Code (.txt)</span>
+          </a>
+        </div>
       </div>
 
       {/* Staff PWA/App Installation Guide Card */}
@@ -267,7 +311,7 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
               <li>اپنے موبائل پر <span className="text-emerald-400 font-bold">Chrome Browser</span> کھولیں اور اس ویب سائٹ پر جائیں۔</li>
               <li>اوپر دائیں کونے میں <span className="font-bold text-white">Three Dots (تین نقطے)</span> پر کلک کریں۔</li>
               <li>منیو میں <span className="text-blue-400 font-bold">"Add to Home screen"</span> یا <span className="text-blue-400 font-bold">"Install app"</span> کو منتخب کریں۔</li>
-              <li>آپ کے موبائل کی ہوم سکرین پر <span className="font-bold text-emerald-400">Haider Sanitary</span> کا آئیکن آ جائے گا!</li>
+              <li>آپ کے موبائل کی ہوم سکرین پر <span className="font-bold text-emerald-400">Qumber Sanitary</span> کا آئیکن آ جائے گا!</li>
             </ol>
           </div>
 
@@ -321,15 +365,33 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <a
+              href="/haider_sanitary_pos.apk"
+              download="haider_sanitary_pos.apk"
+              className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-black rounded-xl text-xs flex items-center gap-1.5 transition shadow-lg shadow-amber-500/20"
+            >
+              <Smartphone className="w-4 h-4" />
+              <span>Direct Download 1 APK (.apk)</span>
+            </a>
+
+            <a
+              href="/haider_sanitary_pos_single_file.html"
+              download="haider_sanitary_pos_single_file.html"
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition shadow-md shadow-emerald-900/20"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Direct Download 1 File (.html)</span>
+            </a>
+
             <a
               href="https://www.pwabuilder.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-4 py-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black rounded-xl text-xs flex items-center gap-1.5 transition shadow-lg shadow-amber-500/15"
+              className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl text-xs flex items-center gap-1.5 transition border border-slate-700"
             >
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span>1-Click APK Generator (PWABuilder)</span>
+              <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
+              <span>PWABuilder</span>
             </a>
           </div>
         </div>
@@ -387,25 +449,27 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
             </ol>
           </div>
 
-          {/* Option 3: Capacitor Android Studio */}
-          <div className="p-4 bg-slate-950/80 border border-slate-800 rounded-xl space-y-2">
-            <div className="flex items-center gap-2 text-sky-400 font-bold">
-              <Code2 className="w-4 h-4" />
-              <span>طریقہ ۳: Capacitor + Android Studio</span>
+          {/* Option 3: Direct 1-File Standalone Offline HTML */}
+          <div className="p-4 bg-slate-950/80 border border-teal-500/30 rounded-xl space-y-2">
+            <div className="flex items-center gap-2 text-teal-400 font-bold">
+              <Download className="w-4 h-4" />
+              <span>طریقہ ۳: سنگل آف لائن فائل (.html)</span>
             </div>
             <p className="text-[11px] text-slate-300 leading-relaxed">
-              اگر آپ ڈویلپر ہیں اور خود APK کمپائل کرنا چاہتے ہیں:
+              کسی کمپیوٹر یا ڈویلپر ٹول کی ضرورت نہیں! صرف ۱ سنگل فائل ڈاؤن لوڈ کریں جو بنا انٹرنیٹ اور بنا سرور کے موبائل پر کھلتی ہے:
             </p>
-            <div className="bg-slate-900 p-2 rounded text-[10px] font-mono text-slate-300 border border-slate-800 space-y-1">
-              <div>npm i @capacitor/core @capacitor/android</div>
-              <div>npx cap init</div>
-              <div>npm run build</div>
-              <div>npx cap add android</div>
-              <div>npx cap open android</div>
+            <div className="pt-2 flex flex-col gap-2">
+              <a
+                href="/download/single-file"
+                className="w-full py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold rounded-lg text-center text-xs flex items-center justify-center gap-1.5 shadow"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Download Standalone (.html)</span>
+              </a>
+              <span className="text-[9px] text-slate-400 text-center font-mono">
+                سنگل فائل • لائف ٹائم آف لائن سپورٹ
+              </span>
             </div>
-            <p className="text-[10px] text-slate-400">
-              اینڈرائیڈ اسٹوڈیو میں <strong>Build APK</strong> منتخب کریں۔
-            </p>
           </div>
         </div>
       </div>
@@ -516,6 +580,22 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
                 onChange={(e) => setReceiptFooter(e.target.value)}
                 className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 outline-none resize-none"
               />
+            </div>
+
+            <div className="flex items-center justify-between p-3 bg-slate-950/50 border border-slate-700/50 rounded-lg">
+              <div>
+                <div className="font-semibold text-slate-200">Daily Local Backup Reminder</div>
+                <div className="text-xs text-slate-400 mt-0.5">Prompt to download JSON dump daily</div>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={enableDailyBackup}
+                  onChange={(e) => setEnableDailyBackup(e.target.checked)}
+                />
+                <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div>
+              </label>
             </div>
 
             <div className="pt-2 flex items-center justify-between">
@@ -745,7 +825,7 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
           <button
             onClick={() =>
               handleCopyText(
-                `Domain: Haider Pipe And Sanitary Store\nSuper Admin: Haider Ali (PIN: 1234)\nBranch 2 Manager: Hamza Ali (PIN: 2345)\nBranch 3 Manager: Asad Ali (PIN: 3456)\nBranch 1 Cashiers: Ahmad (PIN: 1122), Bilal (PIN: 3344)`,
+                `Domain: Qumber Pipe And Sanitary Store\nSuper Admin: Qumber Ali Shah (PIN: 03005861463)\nBranch 2 Manager: Asad Khan (PIN: 2233)\nBranch 1 Assistant: Hussnain Ali (PIN: 1234)\nHelper: Sajid ur Rehman (PIN: 5678)`,
                 "all-creds"
               )
             }
@@ -765,16 +845,16 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
             </div>
             <div className="space-y-1.5 text-[11px]">
               <div className="flex justify-between border-b border-slate-900 pb-1">
-                <span className="text-slate-400">Domain / Account:</span>
-                <span className="font-bold text-slate-200 font-mono">Haider Pipe And Sanitary Store</span>
+                <span className="text-slate-400">Super Admin User:</span>
+                <span className="font-bold text-emerald-400">Qumber Ali Shah (Owner)</span>
               </div>
               <div className="flex justify-between border-b border-slate-900 pb-1">
-                <span className="text-slate-400">Super Admin User:</span>
-                <span className="font-bold text-emerald-400">Haider Ali (Owner)</span>
+                <span className="text-slate-400">Permanent Email:</span>
+                <span className="font-bold text-indigo-400">qumbera038@gmail.com</span>
               </div>
               <div className="flex justify-between border-b border-slate-900 pb-1">
                 <span className="text-slate-400">Admin PIN / Password:</span>
-                <span className="font-bold text-amber-400 font-mono">1234</span>
+                <span className="font-bold text-amber-400 font-mono">03005861463</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Access Level:</span>
@@ -977,15 +1057,15 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
 
                 {newUserHasPassword && (
                   <div>
-                    <label className="text-slate-300 text-[11px] block mb-1">4-Digit Security PIN *</label>
+                    <label className="text-slate-300 text-[11px] block mb-1">Security PIN / Password *</label>
                     <div className="relative">
                       <input
                         type={newUserShowPin ? "text" : "password"}
                         required={newUserHasPassword}
-                        maxLength={6}
+                        maxLength={20}
                         value={newUserPin}
                         onChange={(e) => setNewUserPin(e.target.value)}
-                        placeholder="e.g. 5566"
+                        placeholder="e.g. 1234 or custom password"
                         className="w-full px-3 py-2 bg-glass border border-slate-700 rounded-lg text-slate-100 text-center font-mono text-base tracking-widest outline-none focus:border-blue-500 pr-10"
                       />
                       <button
@@ -1135,15 +1215,15 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
 
                 {editHasPassword && (
                   <div>
-                    <label className="text-slate-300 text-[11px] block mb-1">Security PIN *</label>
+                    <label className="text-slate-300 text-[11px] block mb-1">Security PIN / Password *</label>
                     <div className="relative">
                       <input
                         type={editShowPin ? "text" : "password"}
                         required={editHasPassword}
-                        maxLength={6}
+                        maxLength={20}
                         value={editPin}
                         onChange={(e) => setEditPin(e.target.value)}
-                        placeholder="e.g. 1234"
+                        placeholder="e.g. 1234 or custom password"
                         className="w-full px-3 py-2 bg-glass border border-slate-700 rounded-lg text-slate-100 text-center font-mono text-base tracking-widest outline-none focus:border-blue-500 pr-10"
                       />
                       <button
@@ -1235,12 +1315,12 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
             footer: "حیدر پائپ اینڈ سینیٹری سٹور - آفیشل سٹینڈرڈ آپریٹنگ پروسیجرز (SOPs)"
           },
           en: {
-            title: "Haider Pipe & Sanitary Store - Official Software Manual & PDF Guide",
+            title: "Qumber Pipe & Sanitary Store - Official Software Manual & PDF Guide",
             subtitle: "Khyber Bazar, Seikarno Square, Peshawar Cantt | PTCL: 091-2565800",
             tag1: "Multi-Branch Network (3 Branches)",
             tag2: "Wholesale & Retail POS System",
             introTitle: "Introduction & Software Specifications",
-            introDesc: "This software is custom designed for Haider Pipe & Sanitary Store (Peshawar Cantt) to manage daily billing, wholesale & retail sales, customer khata ledger balances, and multi-branch network synchronization. It features full offline capability (PWA) and installs on your device instantly.",
+            introDesc: "This software is custom designed for Qumber Pipe & Sanitary Store (Peshawar Cantt) to manage daily billing, wholesale & retail sales, customer khata ledger balances, and multi-branch network synchronization. It features full offline capability (PWA) and installs on your device instantly.",
             sec1Title: "1. Daily Billing & POS Sales Counter",
             sec1Desc1: "Billing Workflow (How to create an invoice):",
             sec1Steps1: [
@@ -1272,9 +1352,9 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
             sec5Steps: [
               "To guarantee 100% data preservation, navigate to Settings and tap 'Export Data Backup' daily.",
               "The generated JSON backup is saved locally and can be imported to any other device or tablet.",
-              "Manage all 3 retail branches (Haider Ali, Chota Bhai, and Abbas Branch) from one unified platform."
+              "Manage all 3 retail branches (Qumber Ali Shah, Chota Bhai, and Assistant Branch) from one unified platform."
             ],
-            footer: "Haider Pipe & Sanitary Store - Official Standard Operating Procedures (SOPs)"
+            footer: "Qumber Pipe & Sanitary Store - Official Standard Operating Procedures (SOPs)"
           },
           ps: {
             title: "حیدر پائپ اینڈ سینیٹری سټور - د کارولو رسمي لارښود او پی ډی ایف فایل",

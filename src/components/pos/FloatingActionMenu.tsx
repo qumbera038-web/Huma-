@@ -44,6 +44,19 @@ export function FloatingActionMenu({ setActiveTab, onAddNewCustomer }: Props) {
           <div className="flex flex-col gap-3 animate-in slide-in-from-bottom-5 fade-in duration-200 origin-bottom">
             <button
               onClick={() => {
+                setActiveTab("export");
+                setIsOpen(false);
+              }}
+              className="flex items-center gap-3 bg-amber-500 text-slate-950 font-bold px-4 py-3 rounded-full shadow-[0_8px_30px_rgb(245,158,11,0.3)] hover:shadow-[0_8px_30px_rgb(245,158,11,0.5)] hover:scale-105 transition-all border border-amber-400"
+            >
+              <span className="text-sm pr-1">Download APK & 1-File</span>
+              <div className="bg-slate-950 text-amber-400 p-2 rounded-full">
+                <Plus className="w-4 h-4" />
+              </div>
+            </button>
+
+            <button
+              onClick={() => {
                 setActiveTab("billing");
                 setIsOpen(false);
               }}

@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "Haider Pipe and Sanitary Store",
-  "short_name": "HaiderPOS",
-  "description": "Complete POS, Wholesale & Retail Billing, Inventory & Customer Khata Management for Haider Pipe and Sanitary Store.",
+  "name": "Qumber Pipe and Sanitary Store",
+  "short_name": "QumberPOS",
+  "description": "Complete POS, Wholesale & Retail Billing, Inventory & Customer Khata Management for Qumber Pipe and Sanitary Store.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

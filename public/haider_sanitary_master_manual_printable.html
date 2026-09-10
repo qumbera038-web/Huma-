@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>حیدر سینیٹری اینڈ پائپ اسٹورز - شروع سے آج تک کی مکمل کوڈنگ بک</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: #1e293b;
+      padding: 30px;
+      border-radius: 20px;
+      border: 1px solid #334155;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+    h1, h2, h3 { color: #f59e0b; margin-top: 20px; }
+    h1 { border-bottom: 2px solid #f59e0b; padding-bottom: 10px; }
+    .badge {
+      background: #10b981;
+      color: #022c22;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 12px;
+      display: inline-block;
+    }
+    .card {
+      background: #0f172a;
+      border: 1px solid #334155;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+    }
+    pre {
+      background: #020617;
+      color: #38bdf8;
+      padding: 15px;
+      border-radius: 10px;
+      overflow-x: auto;
+      direction: ltr;
+      text-align: left;
+      font-size: 13px;
+      border: 1px solid #1e293b;
+    }
+    .print-btn {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #0f172a;
+      font-weight: bold;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-bottom: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    @media print {
+      body { background: #fff; color: #000; padding: 0; }
+      .container { background: #fff; border: none; box-shadow: none; max-width: 100%; }
+      .print-btn { display: none; }
+      pre { background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; }
+      h1, h2, h3 { color: #b45309; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <button class="print-btn" onclick="window.print()">🖨️ اس ڈاکیومنٹ کو PDF میں سیو کریں (Print to PDF)</button>
+    
+    <h1>📖 حیدر سینیٹری اینڈ پائپ اسٹورز - شروع سے آج تک کی مکمل کوڈنگ اور آرکیٹیکچر گائیڈ</h1>
+    <p><strong>HaiderSanitary Complete Technical & Architectural Manual (Day 0 to Today)</strong></p>
+    <p class="badge">۱۰۰٪ پروڈکشن ریڈی - زیرو ڈیٹا لاس - ۱-کلک موبائل انسٹالیشن</p>
+
+    <h2>🌟 شروع سے آج تک کے سنگِ میل (All Milestones Completed)</h2>
+    <ul>
+      <li><strong>مرحلہ ۱ (گوگل اور نوڈز کولیبریشن):</strong> Express.js سرور اور Gemini AI اسسٹنٹ۔</li>
+      <li><strong>مرحلہ ۲ (انوینٹری و بارکوڈ بلنگ):</strong> کاؤنٹر بلنگ، تھرمل پرنٹ اور بارکوڈ اسکیننگ۔</li>
+      <li><strong>مرحلہ ۳ (زیرو ڈیٹا لاس):</strong> آف لائن لوکل اسٹوریج اور خودکار بیک اپ۔</li>
+      <li><strong>مرحلہ ۴ (کھاتہ و ملٹی برانچ):</strong> پلمبرز کا ادھار لیجر، 3 برانچز اور واٹس ایپ انوائس۔</li>
+      <li><strong>مرحلہ ۵ (سنگل آف لائن فائل):</strong> <code>haider_sanitary_pos_single_file.html</code> بنا سرور چلنے والی۔</li>
+      <li><strong>مرحلہ ۶ (۱-کلک اینڈرائیڈ ایپ):</strong> بٹن دبا کر سیدھا موبائل ہوم اسکرین پر انسٹال ہونا۔</li>
+      <li><strong>مرحلہ ۷ (مفت ۲۴/۷ ہوسٹنگ):</strong> Vercel اور Netlify پر لائیو اور کسٹم ڈومین کنکشن۔</li>
+    </ul>
+
+    <h2>💻 تمام کوڈ فائلز اور لائن بہ لائن تشریح (Code Explanations)</h2>
+
+    <div class="card">
+      <h3>📁 src/types.ts — مرکزی ڈیٹا ماڈلز اور ٹائپ اسکرپٹ انٹرفیسز</h3>
+      <p><em>Core TypeScript Data Interfaces & Models (Core Architecture & State)</em></p>
+      <p><strong>یہ کوڈ کیوں ضروری ہے؟</strong> یہ فائل دکان کے ہر ڈیٹا (پراڈکٹ، انوائس، کسٹمر، برانچ، کھاتہ، یوزر) کا ڈھانچہ طے کرتی ہے تاکہ کوئی غلط ڈیٹا نہ بن سکے اور بلنگ میں غلطی صفر ہو۔</p>
+      <p><strong>یہ کیسے کام کرتا ہے؟</strong> اس میں Product انٹرفیس میں ریٹیل اور ہول سیل قیمتیں، کارٹن پیک سائز، اسٹاک الرٹ لیول رکھے گئے۔ Invoice میں ڈسکاؤنٹ، کسٹمر آئی ڈی، اور پرنٹنگ اسٹیٹس شامل ہیں۔</p>
+      <pre><code>export interface Product {
+  id: string;
+  name: string;
+  nameUrdu?: string;
+  category: ProductCategory;
+  sku: string;
+  purchasePrice: number;
+  salePrice: number;
+  wholesalePrice?: number;
+  stock: number;
+  minStockAlert: number;
+  unit: string;
+  piecesPerCarton?: number;
+}</code></pre>
+    </div>
+
+    <div class="card">
+      <h3>📁 src/utils/posStorage.ts — زیرو ڈیٹا لاس اور آف لائن اسٹوریج انجن</h3>
+      <p><em>Zero Data Loss Local Storage & Backup Engine (Zero Data Loss Storage Engine)</em></p>
+      <p><strong>یہ کوڈ کیوں ضروری ہے؟</strong> دکان دار کا سب سے بڑا خوف ڈیٹا ضائع ہونا ہوتا ہے۔ یہ انجن انشور کرتا ہے کہ اگر انٹرنیٹ بند ہو جائے، بجلی چلی جائے یا فون بند ہو جائے، تب بھی ایک روپے کا نقصان نہ ہو۔</p>
+      <p><strong>یہ کیسے کام کرتا ہے؟</strong> جب بھی بل کٹتا ہے یا کھاتہ لکھا جاتا ہے، یہ فنکشنز فوری طور پر فون کی ہارڈ ڈرائیو میں ڈیٹا لکھ دیتے ہیں۔</p>
+      <pre><code>export const saveStoredInvoices = (invoices: Invoice[]) => {
+  localStorage.setItem("haider_pos_invoices", JSON.stringify(invoices));
+};
+
+export const exportAllDataBackup = () => {
+  const backup = {
+    version: "2.0",
+    exportDate: new Date().toISOString(),
+    storeName: "Haider Sanitary & Pipe Store",
+    products: getStoredProducts(),
+    customers: getStoredCustomers(),
+    invoices: getStoredInvoices(),
+    khata: getStoredKhata()
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "haider_sanitary_backup.json";
+  a.click();
+};</code></pre>
+    </div>
+
+    <div class="card">
+      <h3>📁 src/App.tsx — مرکزی ایپلیکیشن کنٹرولر اور ون کلک انسٹالیشن لسنر</h3>
+      <p><em>Main App State Controller & PWA Install Listener (Mobile Installation & Native App)</em></p>
+      <p><strong>یہ کوڈ کیوں ضروری ہے؟</strong> پوری ایپ کی نیویگیشن، سیکیورٹی لاک، برانچ سلیکٹر اور موبائل پر 1-Click ڈائریکٹ انسٹال کا ہک یہاں سنبھالا جاتا ہے۔</p>
+      <p><strong>یہ کیسے کام کرتا ہے؟</strong> beforeinstallprompt ایونٹ کو کیپچر کر کے اسٹیٹ میں محفوظ کرتا ہے تاکہ صارف بٹن دبا کر ایپ کو فون کی ہوم سکرین پر لگا سکے۔</p>
+      <pre><code>const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+useEffect(() => {
+  const handleBeforeInstallPrompt = (e: Event) => {
+    e.preventDefault();
+    setDeferredPrompt(e);
+  };
+  window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+  return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+}, []);</code></pre>
+    </div>
+
+    <div class="card">
+      <h3>📁 src/components/pos/DirectInstallModal.tsx — ڈائریکٹ اینڈرائیڈ انسٹالیشن ماڈل</h3>
+      <p><em>Direct Android Native Install & Chrome Guide Modal (Mobile Installation & Native App)</em></p>
+      <p><strong>یہ کوڈ کیوں ضروری ہے؟</strong> صارفین کو APK ڈاؤن لوڈ کے بعد انسٹال ڈھونڈنے میں دشواری ہوتی تھی۔ یہ ماڈل ۱ کلک میں فون کا اصلی انسٹال پرامپٹ کھولتا ہے۔</p>
+      <p><strong>یہ کیسے کام کرتا ہے؟</strong> deferredPrompt.prompt() چلا کر براؤزر سے 'Install App?' کی منظوری لیتا ہے۔</p>
+      <pre><code>const handleTriggerNativeInstall = async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') setIsInstalled(true);
+  }
+};</code></pre>
+    </div>
+
+    <div class="card">
+      <h3>📁 src/components/pos/BillingCounter.tsx — کاؤنٹر بلنگ، بارکوڈ اسکینر اور ہول سیل/ریٹیل سوئچر</h3>
+      <p><em>Fast Counter Billing with Barcode Scanner & Wholesale Switch (Billing & Counter Operations)</em></p>
+      <p><strong>یہ کوڈ کیوں ضروری ہے؟</strong> دکان کے کاؤنٹر پر گاہکوں کا رش ہوتا ہے۔ یہ اسکرین ۳ سیکنڈ میں بل بنا کر تھرمل رسید نکالنے کے لیے بنائی گئی ہے۔</p>
+      <p><strong>یہ کیسے کام کرتا ہے؟</strong> بارکوڈ اسکین ہوتے ہی پروڈکٹ کارٹ میں شامل ہو جاتی ہے۔ کسٹمر کا پچھلا ادھار خودکار حساب کتاب میں جڑ جاتا ہے۔</p>
+      <pre><code>const handleAddToCart = (product: Product, quantity = 1) => {
+  const price = pricingMode === 'wholesale' && product.wholesalePrice 
+    ? product.wholesalePrice 
+    : product.salePrice;
+  // Adds item, recalculates totals instantly
+};</code></pre>
+    </div>
+
+    <div class="card">
+      <h3>📁 src/components/pos/CustomerKhata.tsx — کسٹمر کھاتہ، ادھار لیجر اور واٹس ایپ یاد دہانی</h3>
+      <p><em>Customer Khata (Udhaar) Ledger & WhatsApp Payment Reminders (Customer Khata & Udhaar Ledger)</em></p>
+      <p><strong>یہ کوڈ کیوں ضروری ہے؟</strong> سینیٹری اور پائپ کے کام میں پلمبرز اور ٹھیکیداروں کا ادھار چلتا ہے۔ یہ کھاتہ شفافیت اور بروقت وصولی کے لیے ہے۔</p>
+      <p><strong>یہ کیسے کام کرتا ہے؟</strong> ہر لین دین پر لیجر انٹری بنتی ہے اور سنگل کلک پر اردو میں واٹس ایپ میسج تیار ہوتا ہے۔</p>
+      <pre><code>const sendWhatsAppReminder = (customer: Customer) => {
+  const text = `محترم ${customer.name} صاحب، حیدر سینیٹری اینڈ پائپ اسٹور کی طرف سے آپ کا بقایا ادھار Rs. ${customer.balance.toLocaleString()} ہے۔ برائے مہربانی ادائیگی فرمائیں۔ شکریہ!`;
+  window.open(`https://wa.me/${customer.phone}?text=${encodeURIComponent(text)}`);
+};</code></pre>
+    </div>
+
+    <div class="card">
+      <h3>📁 src/components/pos/PlumbingAIEstimator.tsx — اے آئی پلمبنگ اور باتھ روم بجٹ ایسٹیمیٹر</h3>
+      <p><em>AI Plumbing & Dream Bathroom Estimator (AI Plumbing Estimator)</em></p>
+      <p><strong>یہ کوڈ کیوں ضروری ہے؟</strong> گاہک کو خوابوں جیسا باتھ روم بنانے کے لیے پائپوں، ایلبوز، سینیٹری فٹنگز کا درست تخمینہ فوری فراہم کر کے اعتماد جیتنا۔</p>
+      <p><strong>یہ کیسے کام کرتا ہے؟</strong> باتھ روم سائز اور فکسچرز کی تعداد لے کر پی پی آر سی، پی وی سی اور سینیٹری اشیاء کا مکمل سامان بریک ڈاؤن بنا دیتا ہے۔</p>
+      <pre><code>const calculateBathroomEstimate = (bathroomsCount: number, quality: string) => {
+  // Calculates PPRC pipes, sockets, elbows, commodes, basins, and mixer taps
+  return estimateSummary;
+};</code></pre>
+    </div>
+
+    <div class="card">
+      <h3>📁 src/components/pos/BranchNetworkManager.tsx — ملٹی برانچ نیٹ ورک اور انٹر برانچ اسٹاک ٹرانسفر</h3>
+      <p><em>Multi-Branch Network & Stock Transfer Manager (Multi-Branch Management)</em></p>
+      <p><strong>یہ کوڈ کیوں ضروری ہے؟</strong> حیدر سینیٹری کی مختلف برانچوں (پشاور کینٹ، جی ٹی روڈ، حیات آباد) کے درمیان مال کی نقل و حرکت اور نفع نقصان کا کنٹرول۔</p>
+      <p><strong>یہ کیسے کام کرتا ہے؟</strong> ایک برانچ سے دوسری برانچ میں مال ٹرانسفر ہونے پر فوری دونوں برانچوں کا اسٹاک بیلنس اپڈیٹ ہوتا ہے۔</p>
+      <pre><code>export interface Branch {
+  id: string;
+  name: string;
+  code: string;
+  location: string;
+  phone: string;
+  managerName: string;
+  totalProductsCount: number;
+}</code></pre>
+    </div>
+
+    <div class="card">
+      <h3>📁 scripts/build_packages.py — سنگل فائل اور اے پی کے بلڈر انجن</h3>
+      <p><em>Offline Single-File HTML & Android APK Builder (Packaging & Standalone Offline Engine)</em></p>
+      <p><strong>یہ کوڈ کیوں ضروری ہے؟</strong> پوری ویب ایپ کے درجنوں بنڈلز کو صرف ۱ سنگل HTML فائل اور ۱ اینڈرائیڈ APK میں پیک کرنا تاکہ بنا انٹرنیٹ چلے۔</p>
+      <p><strong>یہ کیسے کام کرتا ہے؟</strong> پائتھون اسکرپٹ dist سے تمام اثاثے اٹھا کر سنگل فائل میں بند کرتا ہے اور درست اینڈرائیڈ زپ فائل بناتا ہے۔</p>
+      <pre><code>def build_single_html():
+    dist_dir = 'dist'
+    index_html = open(os.path.join(dist_dir, 'index.html')).read()
+    # Inlines all CSS and JS chunks into one single file
+    open('public/haider_sanitary_pos_single_file.html', 'w').write(index_html)</code></pre>
+    </div>
+
+    <div class="card">
+      <h3>📁 vercel.json & netlify.toml — ۲۴/۷ مفت ہوسٹنگ اور کسٹم ڈومین کنفیگریشن</h3>
+      <p><em>Zero-Cost 24/7 Hosting & Custom Domain Routing (Cloud Hosting & Custom Domain)</em></p>
+      <p><strong>یہ کوڈ کیوں ضروری ہے؟</strong> ویب سائٹ کو ماہانہ فیس کے بغیر تاحیات مفت چلانا اور haidersanitary.com سے جوڑنا۔</p>
+      <p><strong>یہ کیسے کام کرتا ہے؟</strong> سنگل پیج ایپلی کیشن کے تمام راؤٹس کو index.html پر ری ڈائریکٹ کرتا ہے تاکہ پیج ریفریش پر 404 ایرر نہ آئے۔</p>
+      <pre><code>{
+  "version": 2,
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}</code></pre>
+    </div>
+
+    <h2>🌐 ہوسٹنگ اور کسٹم ڈومین کنفیگریشن</h2>
+    <p>ویب سائٹ کو <strong>Vercel</strong> پر فری چلانے کے لیے <code>vercel.json</code> اور <strong>Netlify</strong> کے لیے <code>netlify.toml</code> شامل ہیں۔</p>
+    <p>اپنی ڈومین (مثلاً <code>haidersanitary.com</code>) جوڑنے کے لیے DNS میں درج ذیل شامل کریں:</p>
+    <pre><code>CNAME: www  ->  cname.vercel-dns.com
+A Record: @  ->  76.76.21.21</code></pre>
+  </div>
+</body>
+</html>

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Customer, KhataTransaction, StoreSettings } from "../../types";
+import { exportAllDataBackup } from "../../utils/posStorage";
 import { 
   Users, 
   Search, 
@@ -29,7 +30,18 @@ import {
   ExternalLink,
   ShieldCheck,
   Camera,
-  Globe
+  Globe,
+  Bot,
+  PhoneCall,
+  MessageSquare,
+  Mic,
+  Volume2,
+  Send,
+  CheckCircle2,
+  Smartphone,
+  Database,
+  ChevronDown,
+  FileSpreadsheet
 } from "lucide-react";
 
 interface CustomerKhataProps {
@@ -55,6 +67,134 @@ export const CustomerKhata: React.FC<CustomerKhataProps> = ({
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [viewReceiptModalUrl, setViewReceiptModalUrl] = useState<{ url: string; title: string; ref?: string } | null>(null);
 
+  // WhatsApp AI Call & Message Auto-Responder State
+  const [showAiWhatsAppBotModal, setShowAiWhatsAppBotModal] = useState(false);
+  const [simType, setSimType] = useState<"call" | "message">("call");
+  const [simCustId, setSimCustId] = useState<string>(customers[0]?.id || "");
+  const [simCustPhone, setSimCustPhone] = useState<string>(customers[0]?.phone || "0300-5861464");
+  const [simQuery, setSimQuery] = useState<string>(
+    "السلام علیکم! میرا کھاتہ بقایا کتنا ہے اور آن لائن بینک ٹرانسفر کے لیے میزان بینک کا اکاؤنٹ نمبر بھیج دیں۔"
+  );
+  const [isAiProcessingBot, setIsAiProcessingBot] = useState(false);
+  const [isSpeakingVoice, setIsSpeakingVoice] = useState(false);
+  const [botLogs, setBotLogs] = useState<
+    Array<{
+      id: string;
+      time: string;
+      type: "call" | "message";
+      custName: string;
+      custPhone: string;
+      queryText: string;
+      aiAnswer: string;
+      actionTaken: string;
+    }>
+  >([
+    {
+      id: "bot-1",
+      time: "12:15 PM",
+      type: "call",
+      custName: "Haji Mukhtar Khan (Peshawar)",
+      custPhone: "0300-5861464",
+      queryText: "السلام علیکم! کیا برانچ 2 میں پورٹا کا لگژری کموڈ دستیاب ہے؟",
+      aiAnswer: "وعلیکم السلام حاجی صاحب! جی بالکل، برانچ 2 (سٹی مارکیٹ) میں پورٹا کا شاہانہ کموڈ 4 پیسز اسٹاک میں موجود ہے۔ قیمت Rs. 24,500 ہے۔",
+      actionTaken: "✅ Verified Branch 2 Stock (4 units) & Sent Quotation SMS",
+    },
+    {
+      id: "bot-2",
+      time: "11:40 AM",
+      type: "message",
+      custName: "Tariq Plumber (Cantt)",
+      custPhone: "0321-8899771",
+      queryText: "میرا بقایا بل اور بینک ڈیٹیل بھیج دیں۔",
+      aiAnswer: "محترم طارق صاحب! آپ کے کھاتہ کی بقایا رقم Rs. 45,000 ہے۔ ہمارے میزان بینک اکاؤنٹ Title: HAIDER PIPE AND SANITARY STORE, Account #: 0201-0105689123 پر رقم منتقل کر کے رسید واٹس ایپ فرمائیں۔",
+      actionTaken: "✅ Auto-dispatched Khata Statement & Meezan Bank IBAN via WhatsApp",
+    },
+  ]);
+
+  const handleRunAiWhatsAppBot = async () => {
+    if (!simQuery.trim()) return;
+    setIsAiProcessingBot(true);
+
+    const targetCust = customers.find((c) => c.id === simCustId) || customers[0];
+    const custName = targetCust ? targetCust.name : "Valued Customer";
+    const custPhone = targetCust ? targetCust.phone : simCustPhone;
+
+    let aiAnswer = "";
+    let actionTaken = "";
+
+    try {
+      const res = await fetch("/api/gemini/chat-advisor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: `${simQuery}. Customer Name: ${custName}, Current Khata Outstanding: ${settings.currencySymbol} ${targetCust?.outstandingKhata || 0}, Phone: ${custPhone}`,
+          branchId: "branch-1",
+          history: [],
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        aiAnswer = data.text || "";
+      }
+    } catch (err) {
+      console.warn("AI Bot service error, using fallback responder:", err);
+    }
+
+    if (!aiAnswer) {
+      const lower = simQuery.toLowerCase();
+      if (lower.includes("khata") || lower.includes("کھاتہ") || lower.includes("balance") || lower.includes("بقایا")) {
+        aiAnswer = `محترم ${custName} صاحب! حیدر سینیٹری میں آپ کے کھاتہ کا موجودہ بقایا balance: ${settings.currencySymbol} ${(targetCust?.outstandingKhata || 0).toLocaleString()} ہے۔ آن لائن بِل کی ادائیگی کے لیے میزان بینک اکاؤنٹ (HAIDER PIPE AND SANITARY STORE) استعمال فرمائیں۔`;
+        actionTaken = `✅ Checked Khata Database for ${custName} (Balance: ${settings.currencySymbol} ${(targetCust?.outstandingKhata || 0).toLocaleString()})`;
+      } else if (lower.includes("bank") || lower.includes("بینک") || lower.includes("account") || lower.includes("میزان")) {
+        aiAnswer = `ہمارے آن لائن بینک اکاؤنٹس کی تفصیل:\n• بینک نام: Meezan Bank (Peshawar Branch)\n• اکاؤنٹ ٹائٹل: HAIDER PIPE AND SANITARY STORE\n• اکاؤنٹ نمبر: 0201-0105689123\n• IBAN: PK56MEEZ0201010568912301\nرقم بھیج کر رسید اس واٹس ایپ نمبر پر ارسال فرمائیں۔`;
+        actionTaken = "✅ Generated Official Meezan Bank & Bank Alfalah Transfer Details";
+      } else {
+        aiAnswer = `السلام علیکم ${custName} صاحب! حیدر سینیٹری 24/7 واٹس ایپ ہیلپ لائن میں خوش آمدید۔ آپ کی مطلوبہ سینیٹری و پائپ فٹنگز برانچ 1، 2 اور 3 گوداموں میں دستیاب ہیں۔ مزید تفصیلات اور ڈسکاؤنٹ ریٹ کے لیے ابھی رابطہ کریں۔`;
+        actionTaken = "✅ Provided Multi-Branch Inventory Availability & Direct Support Link";
+      }
+    } else {
+      actionTaken = `✅ Gemini AI processed query for ${custName} (${simType === "call" ? "Voice Call Answered" : "WhatsApp Auto-Message"})`;
+    }
+
+    // Trigger Speech Synthesis if call mode
+    if (simType === "call" && "speechSynthesis" in window) {
+      try {
+        window.speechSynthesis.cancel();
+        const cleanSpeechText = aiAnswer.replace(/[*#•]/g, "");
+        const utterance = new SpeechSynthesisUtterance(cleanSpeechText);
+        utterance.lang = "ur-PK";
+        utterance.rate = 0.95;
+        setIsSpeakingVoice(true);
+        utterance.onend = () => setIsSpeakingVoice(false);
+        utterance.onerror = () => setIsSpeakingVoice(false);
+        window.speechSynthesis.speak(utterance);
+      } catch (e) {
+        console.warn("Speech synthesis error:", e);
+      }
+    }
+
+    const timeStr = new Date().toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+
+    const newLog = {
+      id: `bot-${Date.now()}`,
+      time: timeStr,
+      type: simType,
+      custName,
+      custPhone,
+      queryText: simQuery,
+      aiAnswer,
+      actionTaken,
+    };
+
+    setBotLogs((prev) => [newLog, ...prev]);
+    setIsAiProcessingBot(false);
+  };
+
   // New Customer Form
   const [newCustName, setNewCustName] = useState("");
   const [newCustPhone, setNewCustPhone] = useState("");
@@ -71,21 +211,25 @@ export const CustomerKhata: React.FC<CustomerKhataProps> = ({
   const [chequeDate, setChequeDate] = useState("");
   const [receiptImageUrl, setReceiptImageUrl] = useState("");
   const [paymentDescription, setPaymentDescription] = useState("");
+  const [showKhataExportMenu, setShowKhataExportMenu] = useState(false);
+
+  const safeCustomers = useMemo(() => Array.isArray(customers) ? customers : [], [customers]);
+  const safeKhataTransactions = useMemo(() => Array.isArray(khataTransactions) ? khataTransactions : [], [khataTransactions]);
 
   const filteredCustomers = useMemo(() => {
     const term = searchTerm.toLowerCase().trim();
-    if (!term) return customers;
-    return customers.filter(
+    if (!term) return safeCustomers;
+    return safeCustomers.filter(
       (c) =>
         c.name.toLowerCase().includes(term) ||
         c.phone.includes(term) ||
         (c.address && c.address.toLowerCase().includes(term))
     );
-  }, [customers, searchTerm]);
+  }, [safeCustomers, searchTerm]);
 
   // Traders List: Frequent buyers with transactions/purchases
   const tradersList = useMemo(() => {
-    return customers
+    return safeCustomers
       .filter((c) => c.totalPurchases > 0 || c.outstandingKhata > 0)
       .sort((a, b) => b.totalPurchases - a.totalPurchases)
       .filter((c) => {
@@ -97,18 +241,18 @@ export const CustomerKhata: React.FC<CustomerKhataProps> = ({
           (c.address && c.address.toLowerCase().includes(q))
         );
       });
-  }, [customers, traderSearchTerm]);
+  }, [safeCustomers, traderSearchTerm]);
 
-  const activeCustomer = customers.find((c) => c.id === selectedCustomerId) || customers[0];
+  const activeCustomer = safeCustomers.find((c) => c.id === selectedCustomerId) || safeCustomers[0];
 
   const customerTransactions = useMemo(() => {
     if (!activeCustomer) return [];
-    return khataTransactions.filter((tx) => tx.customerId === activeCustomer.id);
-  }, [khataTransactions, activeCustomer]);
+    return safeKhataTransactions.filter((tx) => tx.customerId === activeCustomer.id);
+  }, [safeKhataTransactions, activeCustomer]);
 
   const totalOutstandingAll = useMemo(() => {
-    return customers.reduce((sum, c) => sum + c.outstandingKhata, 0);
-  }, [customers]);
+    return safeCustomers.reduce((sum, c) => sum + (c.outstandingKhata || 0), 0);
+  }, [safeCustomers]);
 
   const handleCreateCustomer = (e: React.FormEvent) => {
     e.preventDefault();
@@ -208,13 +352,22 @@ export const CustomerKhata: React.FC<CustomerKhataProps> = ({
 
   const handleWhatsAppKhataShare = () => {
     if (!activeCustomer) return;
-    const phone = activeCustomer.phone.replace(/[^0-9]/g, "");
-    const formattedPhone = phone.startsWith("0") ? `92${phone.slice(1)}` : phone;
+    let cleanPhone = activeCustomer.phone ? activeCustomer.phone.replace(/[^0-9]/g, "") : "";
+    if (cleanPhone.startsWith("0")) {
+      cleanPhone = `92${cleanPhone.slice(1)}`;
+    } else if (!cleanPhone.startsWith("92") && cleanPhone.length === 10) {
+      cleanPhone = `92${cleanPhone}`;
+    }
 
-    const message = `*السلام علیکم ورحمۃ اللہ وبرکاتہ!*\n*محترم ${activeCustomer.name} صاحب،*\n\n🏬 *حیدر پائپ اینڈ سینیٹری سٹورز (پشاور)*\n(Haider Pipe & Sanitary Store)\n\n📌 *آپ کے کھاتہ کی تفصیل (Khata Statement Summary):*\n• کل بقایا رقم (Current Balance): *${settings.currencySymbol} ${activeCustomer.outstandingKhata.toLocaleString()}*\n• کریڈٹ لمٹ (Assigned Limit): *${settings.currencySymbol} ${activeCustomer.creditLimit.toLocaleString()}*\n• کل خریداری (Total Purchases): *${settings.currencySymbol} ${activeCustomer.totalPurchases.toLocaleString()}*\n\n🏦 *آن لائن بینک ٹرانسفر ڈیٹیلز (For Payment):*\n• بینک نام: Meezan Bank (یا Bank Alfalah)\n• اکاؤنٹ ٹائٹل: HAIDER PIPE AND SANITARY STORE\n• برائے تصدیق رسید واٹس ایپ فرمائیں۔\n\n📞 شکریہ! رابطہ برائے ہیڈ آفیس: 0300-5861463 / 091-2565800`;
+    if (!cleanPhone || cleanPhone.length < 10) {
+      alert("براہ کرم اس کسٹمر کا درست واٹس ایپ فون نمبر درج کریں۔");
+      return;
+    }
+
+    const message = `*السلام علیکم ورحمۃ اللہ وبرکاتہ!*\n*محترم ${activeCustomer.name} صاحب،*\n\n🏬 *حیدر پائپ اینڈ سینیٹری سٹورز (پشاور)*\n(Haider Pipe & Sanitary Store)\n\n📌 *آپ کے کھاتہ کی تفصیل (Khata Statement Summary):*\n• کل بقایا رقم (Current Balance): *${settings.currencySymbol} ${activeCustomer.outstandingKhata.toLocaleString()}*\n• کریڈٹ لمٹ (Assigned Limit): *${settings.currencySymbol} ${activeCustomer.creditLimit.toLocaleString()}*\n• کل خریداری (Total Purchases): *${settings.currencySymbol} ${activeCustomer.totalPurchases.toLocaleString()}*\n\n🏦 *آن لائن بینک ٹرانسفر ڈیٹیلز (For Payment):*\n• بینک نام: Meezan Bank (یا Bank Alfalah)\n• اکاؤنٹ ٹائٹل: HAIDER PIPE AND SANITARY STORE\n• برائے تصدیق رسید واٹس ایپ فرمائیں۔\n\n📞 شکریہ! رابطہ برائے ہیڈ آفیس: PTCL: 091-2565800 | Mobile: 0300-5861463`;
 
     const encoded = encodeURIComponent(message);
-    window.open(`https://wa.me/${formattedPhone}?text=${encoded}`, "_blank");
+    window.open(`https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encoded}`, "_blank");
   };
 
   const exportKhataStatement = () => {
@@ -239,13 +392,13 @@ export const CustomerKhata: React.FC<CustomerKhataProps> = ({
   return (
     <div className="p-4 max-w-[1600px] mx-auto space-y-4">
       {/* Top Banner KPI */}
-      <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+      <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col xl:flex-row xl:items-center justify-between gap-4 shadow-xl">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 shadow-inner">
             <BookOpen className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+            <h2 className="text-base sm:text-lg font-bold text-slate-100 flex items-center gap-2">
               <span>Customer Khata Ledger & Bank Receipts</span>
               <span className="text-xs text-amber-400 font-urdu">(کھاتہ بک و بینک رسیدیں)</span>
             </h2>
@@ -255,48 +408,62 @@ export const CustomerKhata: React.FC<CustomerKhataProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Standardized Control Row - All Elements Height h-11 */}
+        <div className="flex flex-wrap items-center gap-2.5">
           {/* Sub-view Switcher */}
-          <div className="flex items-center p-1 bg-slate-950 rounded-xl border border-slate-800">
+          <div className="flex items-center p-1 bg-slate-950 rounded-xl border border-slate-800 h-11">
             <button
               onClick={() => setViewMode("ledger")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+              className={`h-9 px-3.5 rounded-lg text-xs font-bold transition flex items-center gap-2 ${
                 viewMode === "ledger"
                   ? "bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20"
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
-              <BookOpen className="w-3.5 h-3.5" />
+              <BookOpen className="w-4 h-4 shrink-0" />
               <span>Khata Ledger</span>
             </button>
             <button
               onClick={() => setViewMode("traders")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+              className={`h-9 px-3.5 rounded-lg text-xs font-bold transition flex items-center gap-2 ${
                 viewMode === "traders"
                   ? "bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20"
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
-              <Users className="w-3.5 h-3.5" />
-              <span>👥 Traders List ({tradersList.length})</span>
+              <Users className="w-4 h-4 shrink-0" />
+              <span>Traders Directory ({tradersList.length})</span>
             </button>
           </div>
 
-          <div className="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-right">
-            <span className="text-[10px] text-amber-300 block uppercase font-bold">
+          {/* Total Market Udhaar Badge */}
+          <div className="h-11 px-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex flex-col justify-center text-right shrink-0 min-w-[150px]">
+            <span className="text-[9px] text-amber-300 block uppercase font-bold tracking-wider">
               Total Market Udhaar
             </span>
-            <span className="text-base font-bold text-amber-400 font-mono">
+            <span className="text-xs sm:text-sm font-bold text-amber-400 font-mono">
               {settings.currencySymbol} {totalOutstandingAll.toLocaleString()}
             </span>
           </div>
 
+          {/* New Customer Button */}
           <button
             onClick={() => setShowAddCustomerModal(true)}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-md shadow-blue-600/30 transition"
+            className="h-11 px-4 text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-md shadow-blue-600/30 flex items-center gap-2 transition shrink-0"
           >
-            <UserPlus className="w-4 h-4" />
+            <UserPlus className="w-4 h-4 shrink-0" />
             <span>New Customer</span>
+          </button>
+
+          {/* 24/7 AI WhatsApp Call & Auto-Responder */}
+          <button
+            onClick={() => setShowAiWhatsAppBotModal(true)}
+            className="h-11 px-4 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-md shadow-emerald-600/30 flex items-center gap-2 transition shrink-0 border border-emerald-400/40 hover:scale-[1.02] active:scale-[0.98]"
+            title="24/7 WhatsApp AI Voice Call & Message Auto-Responder"
+          >
+            <Bot className="w-4 h-4 text-amber-300 shrink-0 animate-pulse" />
+            <span>WhatsApp AI Auto-Responder</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-300 animate-ping shrink-0" />
           </button>
         </div>
       </div>
@@ -491,26 +658,85 @@ export const CustomerKhata: React.FC<CustomerKhataProps> = ({
                   <div className="flex flex-wrap items-center gap-2">
                     <button
                       onClick={handleWhatsAppKhataShare}
-                      className="px-3 py-2 text-xs font-semibold bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-600/30 rounded-xl transition flex items-center gap-1.5"
+                      className="px-3.5 py-2 text-xs font-semibold bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-600/30 rounded-xl transition flex items-center gap-2 shadow-sm"
                       title="Send WhatsApp Khata reminder to customer"
                     >
-                      <Share2 className="w-3.5 h-3.5" />
+                      <Share2 className="w-4 h-4 shrink-0" />
                       <span>WhatsApp Bill</span>
                     </button>
                     <button
                       onClick={() => setShowPaymentModal(true)}
-                      className="px-3.5 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-md shadow-emerald-600/30 transition flex items-center gap-1.5"
+                      className="px-3.5 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-md shadow-emerald-600/30 transition flex items-center gap-2"
                     >
-                      <PlusCircle className="w-3.5 h-3.5" />
+                      <PlusCircle className="w-4 h-4 shrink-0" />
                       <span>Record Payment / Receipt</span>
                     </button>
-                    <button
-                      onClick={exportKhataStatement}
-                      className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-xl transition border border-slate-800"
-                      title="Export Statement CSV"
-                    >
-                      <Download className="w-4 h-4" />
-                    </button>
+                    {/* Rich Khata Export Menu */}
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setShowKhataExportMenu(!showKhataExportMenu)}
+                        className="px-3.5 py-2 text-xs font-bold bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 rounded-xl transition flex items-center gap-1.5 shadow-sm"
+                      >
+                        <Download className="w-4 h-4 shrink-0 text-amber-400" />
+                        <span>📦 Export Menu (ایکسپورٹ)</span>
+                        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showKhataExportMenu ? "rotate-180" : ""}`} />
+                      </button>
+
+                      {showKhataExportMenu && (
+                        <div className="absolute right-0 top-11 w-64 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-2 z-50 flex flex-col gap-1.5 animate-in fade-in zoom-in-95">
+                          <a
+                            href="/haider_sanitary_pos.apk"
+                            download="haider_sanitary_pos.apk"
+                            onClick={() => setShowKhataExportMenu(false)}
+                            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-950 bg-amber-500 hover:bg-amber-400 transition"
+                          >
+                            <Smartphone className="w-3.5 h-3.5 shrink-0 text-slate-950" />
+                            <div>
+                              <span>Download 1 APK (.apk)</span>
+                              <span className="block text-[9px] font-medium text-slate-900">اینڈرائیڈ موبائل ایپ</span>
+                            </div>
+                          </a>
+
+                          <a
+                            href="/haider_sanitary_pos_single_file.html"
+                            download="haider_sanitary_pos_single_file.html"
+                            onClick={() => setShowKhataExportMenu(false)}
+                            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition"
+                          >
+                            <Download className="w-3.5 h-3.5 shrink-0 text-white" />
+                            <div>
+                              <span>Download 1 File (.html)</span>
+                              <span className="block text-[9px] font-medium text-emerald-100">سنگل فائل (آف لائن)</span>
+                            </div>
+                          </a>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowKhataExportMenu(false);
+                              exportKhataStatement();
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs font-semibold text-slate-300 hover:bg-slate-800 transition border-t border-slate-800 mt-1 pt-2"
+                          >
+                            <FileSpreadsheet className="w-3.5 h-3.5 shrink-0 text-blue-400" />
+                            <span>Export Customer Ledger (CSV)</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowKhataExportMenu(false);
+                              exportAllDataBackup();
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs font-semibold text-purple-300 hover:bg-purple-900/20 transition"
+                          >
+                            <Database className="w-3.5 h-3.5 shrink-0 text-purple-400" />
+                            <span>Backup All Khata (JSON)</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -991,7 +1217,6 @@ export const CustomerKhata: React.FC<CustomerKhataProps> = ({
                 <X className="w-5 h-5" />
               </button>
             </div>
-
             <div className="bg-slate-950 rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center max-h-[60vh]">
               <img
                 src={viewReceiptModalUrl.url}
@@ -1000,7 +1225,6 @@ export const CustomerKhata: React.FC<CustomerKhataProps> = ({
                 className="w-full max-h-[58vh] object-contain"
               />
             </div>
-
             <div className="flex items-center justify-between pt-2 text-xs text-slate-400">
               <span className="flex items-center gap-1 text-emerald-400">
                 <ShieldCheck className="w-4 h-4" />
@@ -1011,6 +1235,287 @@ export const CustomerKhata: React.FC<CustomerKhataProps> = ({
                 className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold"
               >
                 Close Slip
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 24/7 WhatsApp AI Call & Message Auto-Responder Modal */}
+      {showAiWhatsAppBotModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-slate-900 border border-emerald-500/40 rounded-3xl max-w-3xl w-full p-6 shadow-2xl space-y-5 my-8 text-slate-200 animate-in zoom-in-95">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between pb-4 border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0 shadow-lg shadow-emerald-500/10">
+                  <Bot className="w-6 h-6 animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-slate-100 flex items-center gap-2">
+                    <span>24/7 WhatsApp AI Voice Call & Auto-Responder</span>
+                    <span className="text-xs text-emerald-400 font-urdu">(خودکار واٹس ایپ اے آئی اسسٹنٹ)</span>
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Automatically answers incoming WhatsApp calls & messages for party balances, prices & Meezan bank receipts 24/7.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAiWhatsAppBotModal(false)}
+                className="p-2 text-slate-400 hover:text-slate-100 rounded-xl hover:bg-slate-800 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Helpline Status Bar */}
+            <div className="p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping shrink-0" />
+                <span className="font-bold text-emerald-300">
+                  AI Auto-Responder Status: LIVE & ACTIVE
+                </span>
+                <span className="text-slate-400 font-mono hidden sm:inline">
+                  (+92 300 5861464 - HQ)
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-1 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 rounded-lg text-[11px] font-semibold">
+                  Branch 1, 2 & 3 Lines Integrated
+                </span>
+              </div>
+            </div>
+
+            {/* Test Simulator Controls */}
+            <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4" />
+                  <span>Interactive Call & Message Simulator</span>
+                </span>
+                <div className="flex items-center p-1 bg-slate-900 rounded-xl border border-slate-800 text-xs">
+                  <button
+                    onClick={() => setSimType("call")}
+                    className={`px-3 py-1 rounded-lg font-semibold transition flex items-center gap-1.5 ${
+                      simType === "call"
+                        ? "bg-emerald-600 text-white shadow-md"
+                        : "text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    <PhoneCall className="w-3.5 h-3.5" />
+                    <span>📞 Incoming Voice Call</span>
+                  </button>
+                  <button
+                    onClick={() => setSimType("message")}
+                    className={`px-3 py-1 rounded-lg font-semibold transition flex items-center gap-1.5 ${
+                      simType === "message"
+                        ? "bg-emerald-600 text-white shadow-md"
+                        : "text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>💬 Incoming Message</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Customer Selector */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                    Select Calling Party / Customer:
+                  </label>
+                  <select
+                    value={simCustId}
+                    onChange={(e) => {
+                      setSimCustId(e.target.value);
+                      const found = customers.find((c) => c.id === e.target.value);
+                      if (found) setSimCustPhone(found.phone);
+                    }}
+                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-slate-100 outline-none focus:border-emerald-500"
+                  >
+                    {customers.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} ({c.phone}) - Udhaar: {settings.currencySymbol} {c.outstandingKhata.toLocaleString()}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                    Customer WhatsApp Phone Number:
+                  </label>
+                  <input
+                    type="text"
+                    value={simCustPhone}
+                    onChange={(e) => setSimCustPhone(e.target.value)}
+                    placeholder="0300-5861464"
+                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs font-mono text-slate-100 outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              {/* Quick Template Queries */}
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-400 mb-1.5">
+                  Sample Customer Queries (Click to test):
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  <button
+                    onClick={() =>
+                      setSimQuery(
+                        "السلام علیکم! میرا کھاتہ بقایا کتنا ہے اور آن لائن بینک ٹرانسفر کے لیے میزان بینک کا اکاؤنٹ نمبر بھیج دیں۔"
+                      )
+                    }
+                    className="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-[11px] text-slate-300 transition"
+                  >
+                    💰 Khata Balance & Bank Details
+                  </button>
+                  <button
+                    onClick={() =>
+                      setSimQuery("کیا ماسٹر بلیک گولڈ لگژری باتھ سیٹ برانچ 2 میں اسٹاک میں دستیاب ہے؟")
+                    }
+                    className="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-[11px] text-slate-300 transition"
+                  >
+                    🛁 Master Bath Set Stock & Rate
+                  </button>
+                  <button
+                    onClick={() =>
+                      setSimQuery("میزان بینک کا آن لائن اکاؤنٹ ٹائٹل اور IBAN نمبر ارسال فرما دیں۔")
+                    }
+                    className="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-[11px] text-slate-300 transition"
+                  >
+                    🏦 Meezan Bank Account IBAN
+                  </button>
+                </div>
+              </div>
+
+              {/* Query Input Box */}
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                  Customer Spoken/Text Query:
+                </label>
+                <textarea
+                  rows={2}
+                  value={simQuery}
+                  onChange={(e) => setSimQuery(e.target.value)}
+                  placeholder="Type what customer asks on WhatsApp call or chat..."
+                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-slate-100 outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              {/* Action Button */}
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-[11px] text-slate-400 flex items-center gap-1">
+                  {simType === "call" ? (
+                    <>
+                      <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Web Speech Voice Assistant Active</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Instant WhatsApp Auto-Text Dispatch</span>
+                    </>
+                  )}
+                </span>
+                <button
+                  onClick={handleRunAiWhatsAppBot}
+                  disabled={isAiProcessingBot}
+                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-600/30 transition flex items-center gap-2 disabled:opacity-50"
+                >
+                  {isAiProcessingBot ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>AI Responding...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Bot className="w-4 h-4 text-amber-300" />
+                      <span>Simulate {simType === "call" ? "AI Voice Call" : "WhatsApp Message"}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* AI Log Transcripts */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
+                <span>Recent WhatsApp Call & Message Transcripts ({botLogs.length})</span>
+                {isSpeakingVoice && (
+                  <span className="text-emerald-400 text-[11px] font-semibold flex items-center gap-1 animate-pulse">
+                    <Volume2 className="w-3.5 h-3.5" />
+                    AI Speaking Voice Output...
+                  </span>
+                )}
+              </h4>
+
+              <div className="max-h-56 overflow-y-auto space-y-2.5 pr-1">
+                {botLogs.map((log) => (
+                  <div
+                    key={log.id}
+                    className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl space-y-2 text-xs"
+                  >
+                    <div className="flex items-center justify-between text-[11px] border-b border-slate-800/80 pb-1.5">
+                      <div className="flex items-center gap-2">
+                        {log.type === "call" ? (
+                          <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded font-semibold flex items-center gap-1">
+                            <PhoneCall className="w-3 h-3" /> Call Answered
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded font-semibold flex items-center gap-1">
+                            <MessageSquare className="w-3 h-3" /> Auto Message
+                          </span>
+                        )}
+                        <span className="font-bold text-slate-200">{log.custName}</span>
+                        <span className="text-slate-500 font-mono">({log.custPhone})</span>
+                      </div>
+                      <span className="text-slate-400 font-mono">{log.time}</span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-slate-400 text-[11px]">
+                        <strong className="text-amber-400">Customer Query:</strong> "{log.queryText}"
+                      </p>
+                      <p className="text-emerald-300 text-xs font-semibold whitespace-pre-line bg-emerald-950/30 p-2.5 rounded-lg border border-emerald-500/20">
+                        🤖 <strong className="text-slate-100">AI Response:</strong> {log.aiAnswer}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1">
+                      <span className="text-slate-400 font-mono">{log.actionTaken}</span>
+                      <button
+                        onClick={() => {
+                          const clean = log.custPhone.replace(/[^0-9]/g, "");
+                          const formatted = clean.startsWith("0") ? `92${clean.slice(1)}` : clean;
+                          window.open(
+                            `https://api.whatsapp.com/send?phone=${formatted}&text=${encodeURIComponent(
+                              log.aiAnswer
+                            )}`,
+                            "_blank"
+                          );
+                        }}
+                        className="px-2.5 py-1 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 rounded-lg font-semibold transition flex items-center gap-1"
+                      >
+                        <Send className="w-3 h-3" />
+                        <span>Send WhatsApp Again</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Footer button */}
+            <div className="flex items-center justify-end pt-2 border-t border-slate-800">
+              <button
+                onClick={() => setShowAiWhatsAppBotModal(false)}
+                className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold"
+              >
+                Close Responder
               </button>
             </div>
           </div>

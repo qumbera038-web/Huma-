@@ -53,8 +53,8 @@ export const InvoiceReceiptModal: React.FC<InvoiceReceiptModalProps> = ({
   const [storeName, setStoreName] = useState(settings.storeName || "Haider Pipe and Sanitary Store");
   const [branchName, setBranchName] = useState(invoice.branchName || invoiceBranch?.name || "Branch 1 (Main Head Office)");
   const [address, setAddress] = useState(invoiceBranch?.address || settings.address || "Peshawar Cantt");
-  const [ptclPhone, setPtclPhone] = useState(invoiceBranch?.ptcl || settings.phone || "091-5273423");
-  const [mobilePhone, setMobilePhone] = useState(invoiceBranch?.mobile || invoiceBranch?.whatsapp || settings.phone || "0333-1234567");
+  const [ptclPhone, setPtclPhone] = useState(invoiceBranch?.ptcl || "091-2565800");
+  const [mobilePhone, setMobilePhone] = useState(invoiceBranch?.mobile || invoiceBranch?.whatsapp || "0300-5861463");
   const [ntn, setNtn] = useState(settings.ntn || "");
   const [showNtn, setShowNtn] = useState(!!settings.ntn);
   const [receiptFooter, setReceiptFooter] = useState(settings.receiptFooter || "Thank you for shopping with us!");
@@ -97,7 +97,7 @@ export const InvoiceReceiptModal: React.FC<InvoiceReceiptModalProps> = ({
     const text = `*${storeName.toUpperCase()}*
 🏢 *Branch:* ${branchInfo}
 📍 *Address:* ${address}
-📞 *Phone:* PTCL: ${ptclPhone} | Mob/WhatsApp: ${mobilePhone}
+📞 *Phone:* PTCL: ${ptclPhone} | Mobile: ${mobilePhone}
 ━━━━━━━━━━━━━━━━━━━━
 🧾 *BILL NO / INVOICE #:* ${invoice.invoiceNumber}
 📅 *DATE:* ${dateFormatted} | ⏰ *TIME:* ${timeFormatted}
@@ -143,7 +143,7 @@ ${showOperator ? `*Billed By:* ${invoice.cashierName} (${invoice.counterStation 
           storeName,
           branchName,
           address,
-          phone: mobilePhone || ptclPhone,
+          phone: `PTCL: ${ptclPhone} | Mobile: ${mobilePhone}`,
           ntn: showNtn && ntn ? ntn : undefined,
           receiptFooter,
         });
@@ -307,7 +307,7 @@ ${showOperator ? `*Billed By:* ${invoice.cashierName} (${invoice.counterStation 
                 <div className="text-[10px] text-slate-700 font-sans font-bold flex flex-wrap justify-center items-center gap-x-2 gap-y-0.5 mt-0.5">
                   <span>📞 PTCL: {ptclPhone}</span>
                   <span className="text-slate-400">|</span>
-                  <span>📱 Mob & WA: {mobilePhone}</span>
+                  <span>📱 Mobile: {mobilePhone}</span>
                 </div>
                 
                 {showNtn && ntn && (
@@ -375,6 +375,31 @@ ${showOperator ? `*Billed By:* ${invoice.cashierName} (${invoice.counterStation 
                     <span className="text-slate-600 text-[10px] font-mono block">{invoice.counterStation || "Counter #1"}</span>
                   </div>
                 </div>
+
+                {/* 📹 CCTV Counter Payer Photo Snapshot Verification */}
+                {invoice.customerPhotoSnapshot && (
+                  <div className="mt-2 pt-2 border-t border-slate-200 flex items-center justify-between gap-2 bg-white p-1.5 rounded border border-slate-200">
+                    <div className="flex items-center gap-2">
+                      <img
+                        src={invoice.customerPhotoSnapshot}
+                        alt="Security Counter Photo"
+                        referrerPolicy="no-referrer"
+                        className="w-9 h-9 rounded object-cover border border-slate-400"
+                      />
+                      <div>
+                        <span className="text-[9px] font-bold text-slate-800 block">
+                          📹 کاؤنٹر سیکیورٹی کیمرہ تصویری ثبوت (CCTV Verified)
+                        </span>
+                        <span className="text-[8px] text-slate-500 block">
+                          ادائیگی کے وقت کیمرے سے محفوظ شدہ تصویر
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-[9px] font-mono font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                      PAID ✓
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* 📦 Products & Items Table (Product. Item quantity price) */}
@@ -479,7 +504,7 @@ ${showOperator ? `*Billed By:* ${invoice.cashierName} (${invoice.counterStation 
                 <div className="text-[8px] text-slate-400 font-sans flex items-center justify-center gap-1.5 pt-0.5">
                   <span>Terminal: {invoice.counterStation || "Counter #1"}</span>
                   <span>•</span>
-                  <span>Software by HaiderSanitary</span>
+                  <span>Software by QumberSanitary</span>
                 </div>
               </div>
             </div>

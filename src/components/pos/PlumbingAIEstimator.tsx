@@ -197,7 +197,7 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt,
-          model: "gemini-3.7-flash",
+          model: "gemini-2.5-flash",
           systemInstruction:
             "You are an expert plumbing contractor and hardware store estimator in Pakistan. Output well-formatted markdown tables and accurate Pakistani rupee estimates.",
         }),
@@ -515,12 +515,12 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
                       value={customNotes}
                       onChange={(e) => setCustomNotes(e.target.value)}
                       placeholder={t('how_can_i_help')}
-                      className="w-full px-3 py-2 pr-12 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 outline-none focus:border-blue-500 resize-none"
+                      className="w-full px-3 py-2 pe-12 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 outline-none focus:border-blue-500 resize-none"
                     />
                     <button
                       type="button"
                       onClick={toggleListen}
-                      className={`absolute right-2 top-2 p-2 rounded-lg transition ${
+                      className={`absolute end-2 top-2 p-2 rounded-lg transition ${
                         isListening ? "bg-rose-500 text-white animate-pulse" : "bg-slate-800 text-slate-400 hover:text-white"
                       }`}
                       title={isListening ? t('stop_listening') : t('voice_command')}
@@ -796,7 +796,7 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => setWireOption("roll")}
-                    className={`p-2 rounded-xl border text-left transition flex items-center justify-between ${
+                    className={`p-2 rounded-xl border text-start transition flex items-center justify-between ${
                       wireOption === "roll"
                         ? "bg-blue-600/10 border-blue-500/60 text-blue-300 font-bold"
                         : "bg-slate-950 border-slate-800 text-slate-400"
@@ -811,7 +811,7 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
 
                   <button
                     onClick={() => setWireOption("meters")}
-                    className={`p-2 rounded-xl border text-left transition flex items-center justify-between ${
+                    className={`p-2 rounded-xl border text-start transition flex items-center justify-between ${
                       wireOption === "meters"
                         ? "bg-blue-600/10 border-blue-500/60 text-blue-300 font-bold"
                         : "bg-slate-950 border-slate-800 text-slate-400"
@@ -856,7 +856,7 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
                   <span className="text-[10px] text-slate-400 block font-semibold uppercase">Total Investment Package</span>
                   <span className="text-base font-black text-amber-400 font-mono">PKR {grandTotal.toLocaleString()}</span>
                 </div>
-                <div className="text-right">
+                <div className="text-end">
                   <span className="block text-[9px] text-slate-400">Total Signal Cable:</span>
                   <span className="block text-xs font-bold text-indigo-400 font-mono">{totalWireMeters} Meters (~{totalWireFeet} ft)</span>
                 </div>
@@ -869,7 +869,7 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
               
               {/* INTERACTIVE SIMULATOR CARD */}
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl pointer-events-none" />
+                <div className="absolute top-0 end-0 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl pointer-events-none" />
                 
                 <div className="flex items-center justify-between border-b border-slate-800/80 pb-2 mb-3">
                   <div>
@@ -902,7 +902,7 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
                   
                   {/* Simulated Water Tank UI */}
                   <div className="bg-slate-950 rounded-xl p-3 border border-slate-800 flex flex-col items-center justify-center min-h-[170px] relative">
-                    <span className="absolute top-2 left-2 text-[9px] text-slate-500 font-semibold">WATER TANK (واٹر ٹینک)</span>
+                    <span className="absolute top-2 start-2 text-[9px] text-slate-500 font-semibold">WATER TANK (واٹر ٹینک)</span>
                     
                     {/* The physical tank cylinder look */}
                     <div className="w-24 h-32 border-2 border-slate-700 rounded-b-xl rounded-t-md relative bg-slate-900 overflow-hidden flex flex-col justify-end shadow-inner">
@@ -914,7 +914,7 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
                       >
                         {/* Wavy bubble effect */}
                         {demoWaterLevel > 0 && (
-                          <div className="absolute top-0 left-0 w-full h-1 bg-sky-200/50 animate-pulse" />
+                          <div className="absolute top-0 start-0 w-full h-1 bg-sky-200/50 animate-pulse" />
                         )}
                         {demoPumpOn && (
                           <div className="absolute inset-0 flex flex-col items-center justify-center opacity-40">
@@ -924,7 +924,7 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
                       </div>
 
                       {/* Sensor steel probe lines on the side */}
-                      <div className="absolute inset-y-0 right-1.5 flex flex-col justify-between py-2 text-[8px] font-bold z-10 pointer-events-none">
+                      <div className="absolute inset-y-0 end-1.5 flex flex-col justify-between py-2 text-[8px] font-bold z-10 pointer-events-none">
                         <div className={`w-3 h-0.5 border-b border-slate-500 ${demoWaterLevel >= 100 ? "border-emerald-400 bg-emerald-400" : ""}`} title="100% Sensor Probe" />
                         <div className={`w-3 h-0.5 border-b border-slate-500 ${demoWaterLevel >= 75 ? "border-blue-400 bg-blue-400" : ""}`} title="75% Sensor Probe" />
                         <div className={`w-3 h-0.5 border-b border-slate-500 ${demoWaterLevel >= 50 ? "border-amber-400 bg-amber-400" : ""}`} title="50% Sensor Probe" />
@@ -934,7 +934,7 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
 
                       {/* Over-flow water drops coming from top if over 100 */}
                       {demoWaterLevel === 100 && demoBuzzerPulse && (
-                        <span className="absolute top-0 right-4 text-emerald-400 animate-ping text-xs">💧</span>
+                        <span className="absolute top-0 end-4 text-emerald-400 animate-ping text-xs">💧</span>
                       )}
                     </div>
 
@@ -946,7 +946,7 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
 
                   {/* Simulated Indicator Controller Display */}
                   <div className="bg-slate-950 rounded-xl p-3 border border-slate-800 flex flex-col justify-between min-h-[170px] relative">
-                    <span className="absolute top-2 left-2 text-[9px] text-slate-500 font-semibold uppercase tracking-wider">{indicatorBrand} SYSTEM</span>
+                    <span className="absolute top-2 start-2 text-[9px] text-slate-500 font-semibold uppercase tracking-wider">{indicatorBrand} SYSTEM</span>
                     
                     {/* The Indicator Box */}
                     <div className="flex-1 flex flex-col items-center justify-center space-y-3 pt-4">
@@ -983,7 +983,7 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
                           </div>
 
                           {/* Built-in buzzer speaker visualization */}
-                          <div className={`absolute -right-1 -top-1 w-3 h-3 bg-slate-800 rounded-full border border-slate-700 flex items-center justify-center ${demoBuzzerPulse ? "animate-ping bg-emerald-500" : ""}`}>
+                          <div className={`absolute -end-1 -top-1 w-3 h-3 bg-slate-800 rounded-full border border-slate-700 flex items-center justify-center ${demoBuzzerPulse ? "animate-ping bg-emerald-500" : ""}`}>
                             <span className="w-1 h-1 bg-slate-600 rounded-full" />
                           </div>
                         </div>
@@ -1144,7 +1144,7 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
                         <span className="text-[9px] text-slate-500 block">CLIENT HARDWARE WARRANTY</span>
                         <span className="font-bold text-amber-400">1-Year Brand Replacement Guarantee</span>
                       </div>
-                      <div className="text-right">
+                      <div className="text-end">
                         <span className="text-[9px] text-slate-500 block">INSTALLATION SAFETY</span>
                         <span className="font-bold text-emerald-400">5V DC Shock-Free Safety</span>
                       </div>
@@ -1153,13 +1153,13 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
                     <div className="space-y-2">
                       <h5 className="font-bold text-slate-200">Material Bill of Materials (BOM) Breakdown:</h5>
                       <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs border-collapse">
+                        <table className="w-full text-start text-xs border-collapse">
                           <thead>
                             <tr className="border-b border-slate-800 text-slate-400">
                               <th className="py-2 font-bold">Item Description</th>
                               <th className="py-2 text-center font-bold">Qty</th>
-                              <th className="py-2 text-right font-bold">Unit Rate</th>
-                              <th className="py-2 text-right font-bold">Amount</th>
+                              <th className="py-2 text-end font-bold">Unit Rate</th>
+                              <th className="py-2 text-end font-bold">Amount</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-800/60">
@@ -1168,32 +1168,32 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
                                 {selectedUnitName} <span className="text-[9px] text-amber-500 block font-mono">{selectedUnitCode}</span>
                               </td>
                               <td className="py-2.5 text-center">1 pc</td>
-                              <td className="py-2.5 text-right font-mono">PKR {selectedUnitPrice.toLocaleString()}</td>
-                              <td className="py-2.5 text-right font-mono font-bold text-slate-100">PKR {selectedUnitPrice.toLocaleString()}</td>
+                              <td className="py-2.5 text-end font-mono">PKR {selectedUnitPrice.toLocaleString()}</td>
+                              <td className="py-2.5 text-end font-mono font-bold text-slate-100">PKR {selectedUnitPrice.toLocaleString()}</td>
                             </tr>
                             <tr>
                               <td className="py-2.5 font-medium text-slate-100">
                                 {probesName} <span className="text-[9px] text-slate-500 block font-mono">IND-PROBE-SS</span>
                               </td>
                               <td className="py-2.5 text-center">1 set</td>
-                              <td className="py-2.5 text-right font-mono font-medium text-slate-400">PKR {priceProbeSet.toLocaleString()}</td>
-                              <td className="py-2.5 text-right font-mono font-bold text-slate-100">PKR {priceProbeSet.toLocaleString()}</td>
+                              <td className="py-2.5 text-end font-mono font-medium text-slate-400">PKR {priceProbeSet.toLocaleString()}</td>
+                              <td className="py-2.5 text-end font-mono font-bold text-slate-100">PKR {priceProbeSet.toLocaleString()}</td>
                             </tr>
                             <tr>
                               <td className="py-2.5 font-medium text-slate-100">
                                 {cableName} <span className="text-[9px] text-slate-500 block font-mono">{wireOption === "roll" ? "IND-CABLE-30" : "IND-LOOSE"}</span>
                               </td>
                               <td className="py-2.5 text-center">{cableQty} {cableUnit}(s)</td>
-                              <td className="py-2.5 text-right font-mono font-medium text-slate-400">PKR {(wireOption === "roll" ? priceCableRoll : priceCablePerMeter).toLocaleString()}</td>
-                              <td className="py-2.5 text-right font-mono font-bold text-slate-100">PKR {cableCost.toLocaleString()}</td>
+                              <td className="py-2.5 text-end font-mono font-medium text-slate-400">PKR {(wireOption === "roll" ? priceCableRoll : priceCablePerMeter).toLocaleString()}</td>
+                              <td className="py-2.5 text-end font-mono font-bold text-slate-100">PKR {cableCost.toLocaleString()}</td>
                             </tr>
                             <tr>
                               <td className="py-2.5 font-medium text-slate-300">
                                 Standard installation accessories (Teflon tape, clips, rawal plugs)
                               </td>
                               <td className="py-2.5 text-center">1 pack</td>
-                              <td className="py-2.5 text-right font-mono font-medium text-slate-400">PKR {installationAccessories}</td>
-                              <td className="py-2.5 text-right font-mono font-bold text-slate-100">PKR {installationAccessories}</td>
+                              <td className="py-2.5 text-end font-mono font-medium text-slate-400">PKR {installationAccessories}</td>
+                              <td className="py-2.5 text-end font-mono font-bold text-slate-100">PKR {installationAccessories}</td>
                             </tr>
                             {includePlumberLabor && (
                               <tr>
@@ -1201,8 +1201,8 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
                                   <span>Installer Expert Installation & Commissioning Service</span>
                                 </td>
                                 <td className="py-2.5 text-center">1 Job</td>
-                                <td className="py-2.5 text-right font-mono font-medium text-slate-400">PKR 1,500</td>
-                                <td className="py-2.5 text-right font-mono font-bold text-emerald-400">PKR 1,500</td>
+                                <td className="py-2.5 text-end font-mono font-medium text-slate-400">PKR 1,500</td>
+                                <td className="py-2.5 text-end font-mono font-bold text-emerald-400">PKR 1,500</td>
                               </tr>
                             )}
                           </tbody>
@@ -1215,7 +1215,7 @@ Please generate a clear, structured Urdu-English friendly Plumbing Estimate Brea
                         💡 <span className="font-bold text-amber-500">Store Recommendation:</span> Copper wires should be safely routed along water supply pipes using high-quality insulated clips to maximize lifespan.
                       </div>
                       
-                      <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl min-w-[200px] text-right">
+                      <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl min-w-[200px] text-end">
                         <span className="text-[10px] text-slate-400 font-semibold block leading-none mb-1">TOTAL GRAND ESTIMATE</span>
                         <span className="text-lg font-black text-amber-400 font-mono">PKR {grandTotal.toLocaleString()}</span>
                         <span className="text-[8px] text-slate-500 block font-bold leading-none mt-1">Cash / Khata / WhatsApp Payable</span>

@@ -138,14 +138,14 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({ isOpen, onClose, onS
               </div>
               
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
                   autoFocus
                   type="text"
                   value={manualCode}
                   onChange={(e) => setManualCode(e.target.value)}
                   placeholder="Scan or type barcode..."
-                  className="w-full pl-10 pr-4 py-3 bg-slate-900 border border-blue-500/50 focus:border-blue-500 rounded-xl text-white outline-none shadow-inner text-lg"
+                  className="w-full ps-10 pe-4 py-3 bg-slate-900 border border-blue-500/50 focus:border-blue-500 rounded-xl text-white outline-none shadow-inner text-lg"
                 />
               </div>
               

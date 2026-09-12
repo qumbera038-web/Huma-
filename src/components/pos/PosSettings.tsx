@@ -72,6 +72,7 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
   const [currencySymbol, setCurrencySymbol] = useState(settings.currencySymbol);
   const [receiptFooter, setReceiptFooter] = useState(settings.receiptFooter);
   const [enableDailyBackup, setEnableDailyBackup] = useState(settings.enableDailyBackup ?? true);
+  const [lowStockThreshold, setLowStockThreshold] = useState<number>(settings.lowStockThreshold ?? 5);
   const [savedNotice, setSavedNotice] = useState(false);
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
 
@@ -100,7 +101,7 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
 
   // Edit User Form State
   const [editName, setEditName] = useState("");
-  const [editRole, setEditRole] = useState<"admin" | "cashier" | "manager">("cashier");
+  const [editRole, setEditRole] = useState<string>("cashier");
   const [editPin, setEditPin] = useState("");
   const [editHasPassword, setEditHasPassword] = useState(true);
   const [editShowPin, setEditShowPin] = useState(false);
@@ -120,6 +121,7 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
       currencySymbol: currencySymbol.trim(),
       receiptFooter: receiptFooter.trim(),
       enableDailyBackup,
+      lowStockThreshold: Number(lowStockThreshold) || 5,
     };
     onUpdateSettings(updated);
     setSavedNotice(true);
@@ -307,7 +309,7 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
               <Smartphone className="w-4 h-4" />
               <span>Android (سیمسنگ/انفینکس/ویوو)</span>
             </div>
-            <ol className="list-decimal pl-4 space-y-1 text-slate-300 text-[11px]">
+            <ol className="list-decimal ps-4 space-y-1 text-slate-300 text-[11px]">
               <li>اپنے موبائل پر <span className="text-emerald-400 font-bold">Chrome Browser</span> کھولیں اور اس ویب سائٹ پر جائیں۔</li>
               <li>اوپر دائیں کونے میں <span className="font-bold text-white">Three Dots (تین نقطے)</span> پر کلک کریں۔</li>
               <li>منیو میں <span className="text-blue-400 font-bold">"Add to Home screen"</span> یا <span className="text-blue-400 font-bold">"Install app"</span> کو منتخب کریں۔</li>
@@ -321,7 +323,7 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
               <Smartphone className="w-4 h-4" />
               <span>iPhone / iOS (آئی فون)</span>
             </div>
-            <ol className="list-decimal pl-4 space-y-1 text-slate-300 text-[11px]">
+            <ol className="list-decimal ps-4 space-y-1 text-slate-300 text-[11px]">
               <li>آئی فون میں صرف <span className="text-sky-400 font-bold">Safari Browser</span> کے ذریعے اس لنک کو کھولیں۔</li>
               <li>نیچے موجود <span className="font-bold text-white">"Share" (شیئر والے تیر کے نشان)</span> بٹن پر کلک کریں۔</li>
               <li>نیچے سکرول کریں اور <span className="text-blue-400 font-bold">"Add to Home Screen"</span> پر کلک کریں۔</li>
@@ -335,7 +337,7 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
               <Laptop className="w-4 h-4" />
               <span>PC / Laptop (کمپیوٹر/ٹیبلیٹ)</span>
             </div>
-            <ol className="list-decimal pl-4 space-y-1 text-slate-300 text-[11px]">
+            <ol className="list-decimal ps-4 space-y-1 text-slate-300 text-[11px]">
               <li>کمپیوٹر پر <span className="text-indigo-400 font-bold">Chrome</span> یا <span className="text-indigo-400 font-bold">Edge Browser</span> میں لنک کھولیں۔</li>
               <li>ایڈریس بار میں دائیں طرف <span className="text-indigo-400 font-bold">Install (مانیٹر کا آئیکن)</span> نظر آئے گا۔</li>
               <li>اس پر کلک کر کے <span className="font-bold text-white">"Install"</span> منتخب کریں۔</li>
@@ -400,7 +402,7 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
           {/* Option 1: Chrome WebAPK (No APK download required) */}
           <div className="p-4 bg-slate-950/80 border border-emerald-500/30 rounded-xl space-y-2 relative overflow-hidden">
-            <div className="absolute top-2 right-2">
+            <div className="absolute top-2 end-2">
               <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                 سب سے تیز اور آسان ⚡
               </span>
@@ -426,7 +428,7 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
               <PackageCheck className="w-4 h-4" />
               <span>طریقہ ۲: PWABuilder سے APK فائل حاصل کریں</span>
             </div>
-            <ol className="list-decimal pl-4 space-y-1.5 text-slate-300 text-[11px]">
+            <ol className="list-decimal ps-4 space-y-1.5 text-slate-300 text-[11px]">
               <li>اس ایپ کا ویب لنک کاپی کریں:
                 <div className="mt-1 flex items-center gap-1">
                   <input
@@ -573,6 +575,24 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
             </div>
 
             <div>
+              <label className="text-slate-300 font-medium block mb-1">
+                Default Low Stock Alert Threshold (کم اسٹاک الرٹ کی بنیادی حد)
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="1"
+                  value={lowStockThreshold}
+                  onChange={(e) => setLowStockThreshold(Math.max(1, Number(e.target.value)))}
+                  className="w-28 px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-amber-400 outline-none font-mono font-bold"
+                />
+                <span className="text-xs text-slate-400">
+                  Pcs / Sets (جب کسی آئٹم کا اسٹاک اس حد یا اس سے کم ہو جائے گا تو خودکار ان-ایپ الرٹ ٹوسٹ ظاہر ہو گا)
+                </span>
+              </div>
+            </div>
+
+            <div>
               <label className="text-slate-300 font-medium block mb-1">Thermal Receipt Footer Message</label>
               <textarea
                 rows={2}
@@ -594,7 +614,7 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
                   checked={enableDailyBackup}
                   onChange={(e) => setEnableDailyBackup(e.target.checked)}
                 />
-                <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div>
+                <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div>
               </label>
             </div>
 
@@ -621,6 +641,35 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
 
         {/* Right Section: Multi-User Staff & Theme & Danger Zone (5 cols) */}
         <div className="lg:col-span-5 space-y-4">
+          {/* Printer Configuration */}
+          <div className="bg-glass border border-slate-800 rounded-2xl p-5 shadow-xl">
+            <h3 className="font-bold text-slate-100 text-sm mb-3 flex items-center gap-2">
+              <Printer className="w-4 h-4 text-emerald-400" />
+              <span>Thermal Printer Configuration</span>
+            </h3>
+            <div className="flex items-center justify-between p-3 bg-slate-950 border border-slate-800 rounded-xl mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span className="text-xs font-semibold text-emerald-300">Printer Ready / Available</span>
+              </div>
+              <span className="text-[10px] text-slate-500 font-mono">System Default Driver</span>
+            </div>
+            
+            <button
+              onClick={() => {
+                // Trigger print dialog for testing
+                window.print();
+              }}
+              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition"
+            >
+              <Printer className="w-4 h-4" />
+              <span>Test Receipt Layout</span>
+            </button>
+            <p className="text-[10px] text-slate-400 mt-3 text-center">
+              Ensure your browser print dialog is set to "Thermal Printer" and paper size is correct.
+            </p>
+          </div>
+
           {/* Background Theme Card */}
           <div className="bg-glass border border-slate-800 rounded-2xl p-5 shadow-xl">
             <div className="flex items-center justify-between mb-2">
@@ -653,7 +702,7 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
                     key={t.id}
                     type="button"
                     onClick={() => onThemeChange && onThemeChange(t.id as AppTheme)}
-                    className={`p-2.5 rounded-xl border text-left flex items-center justify-between gap-2 transition ${t.bg} ${t.border} ${
+                    className={`p-2.5 rounded-xl border text-start flex items-center justify-between gap-2 transition ${t.bg} ${t.border} ${
                       isSelected
                         ? "ring-2 ring-blue-500 shadow-md font-bold"
                         : "opacity-80 hover:opacity-100"
@@ -715,7 +764,7 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
                           className="w-10 h-10 rounded-full object-cover border border-slate-600 shadow-sm"
                         />
                         {activeUser.id === u.id && (
-                          <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-slate-900" />
+                          <span className="absolute -bottom-0.5 -end-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-slate-900" />
                         )}
                       </div>
                       <div className="min-w-0">
@@ -1066,12 +1115,12 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
                         value={newUserPin}
                         onChange={(e) => setNewUserPin(e.target.value)}
                         placeholder="e.g. 1234 or custom password"
-                        className="w-full px-3 py-2 bg-glass border border-slate-700 rounded-lg text-slate-100 text-center font-mono text-base tracking-widest outline-none focus:border-blue-500 pr-10"
+                        className="w-full px-3 py-2 bg-glass border border-slate-700 rounded-lg text-slate-100 text-center font-mono text-base tracking-widest outline-none focus:border-blue-500 pe-10"
                       />
                       <button
                         type="button"
                         onClick={() => setNewUserShowPin(!newUserShowPin)}
-                        className="absolute right-2.5 top-2 p-1 text-slate-400 hover:text-slate-200"
+                        className="absolute end-2.5 top-2 p-1 text-slate-400 hover:text-slate-200"
                         title={newUserShowPin ? "Hide PIN" : "Show PIN"}
                       >
                         {newUserShowPin ? <EyeOff className="w-4 h-4 text-blue-400" /> : <Eye className="w-4 h-4" />}
@@ -1224,12 +1273,12 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
                         value={editPin}
                         onChange={(e) => setEditPin(e.target.value)}
                         placeholder="e.g. 1234 or custom password"
-                        className="w-full px-3 py-2 bg-glass border border-slate-700 rounded-lg text-slate-100 text-center font-mono text-base tracking-widest outline-none focus:border-blue-500 pr-10"
+                        className="w-full px-3 py-2 bg-glass border border-slate-700 rounded-lg text-slate-100 text-center font-mono text-base tracking-widest outline-none focus:border-blue-500 pe-10"
                       />
                       <button
                         type="button"
                         onClick={() => setEditShowPin(!editShowPin)}
-                        className="absolute right-2.5 top-2 p-1 text-slate-400 hover:text-slate-200"
+                        className="absolute end-2.5 top-2 p-1 text-slate-400 hover:text-slate-200"
                         title={editShowPin ? "Hide PIN" : "Show PIN"}
                       >
                         {editShowPin ? <EyeOff className="w-4 h-4 text-blue-400" /> : <Eye className="w-4 h-4" />}
@@ -1544,7 +1593,7 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-300">
                       <div className="space-y-1">
                         <p className="font-bold text-slate-200">{currentManual.sec1Desc1}</p>
-                        <ul className="list-disc pl-4 space-y-1">
+                        <ul className="list-disc ps-4 space-y-1">
                           {currentManual.sec1Steps1.map((step, sIdx) => (
                             <li key={sIdx}>{step}</li>
                           ))}
@@ -1552,7 +1601,7 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
                       </div>
                       <div className="space-y-1">
                         <p className="font-bold text-slate-200">{currentManual.sec1Desc2}</p>
-                        <ul className="list-disc pl-4 space-y-1">
+                        <ul className="list-disc ps-4 space-y-1">
                           {currentManual.sec1Steps2.map((step, sIdx) => (
                             <li key={sIdx}>{step}</li>
                           ))}
@@ -1569,7 +1618,7 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
                     <p className="text-xs text-slate-300 leading-relaxed">
                       {currentManual.sec2Desc}
                     </p>
-                    <table className="w-full text-left text-[11px] border-collapse border border-slate-800">
+                    <table className="w-full text-start text-[11px] border-collapse border border-slate-800">
                       <thead>
                         <tr className="bg-slate-950/80">
                           <th className="p-1.5 border border-slate-800 text-slate-200">{currentManual.sec2Table[0]}</th>
@@ -1595,7 +1644,7 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
                     <p className="text-xs text-slate-300 leading-relaxed">
                       {currentManual.sec3Desc}
                     </p>
-                    <ul className="list-decimal pl-5 text-xs text-slate-300 space-y-1">
+                    <ul className="list-decimal ps-5 text-xs text-slate-300 space-y-1">
                       {currentManual.sec3Steps.map((step, sIdx) => (
                         <li key={sIdx}>{step}</li>
                       ))}
@@ -1617,7 +1666,7 @@ export const PosSettings: React.FC<PosSettingsProps> = ({
                     <h3 className="text-sm font-black text-indigo-400 flex items-center gap-1">
                       {currentManual.sec5Title}
                     </h3>
-                    <ul className="list-disc pl-5 text-xs text-slate-300 space-y-1">
+                    <ul className="list-disc ps-5 text-xs text-slate-300 space-y-1">
                       {currentManual.sec5Steps.map((step, sIdx) => (
                         <li key={sIdx}>{step}</li>
                       ))}

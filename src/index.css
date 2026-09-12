@@ -8,13 +8,23 @@
   .bg-glass-light {
     @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl;
   }
+
+  .font-geist {
+    font-family: 'Geist', sans-serif;
+  }
+
+  .font-mono-code {
+    font-family: 'JetBrains Mono', monospace;
+  }
 }
 
 body {
   margin: 0;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Geist', 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #0c0c0e;
+  color: #ffffff;
 }
 
 /* Custom Scrollbar for a premium feel */

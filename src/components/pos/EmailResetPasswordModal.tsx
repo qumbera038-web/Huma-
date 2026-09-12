@@ -197,10 +197,10 @@ export const EmailResetPasswordModal: React.FC<EmailResetPasswordModalProps> = (
                   type="email"
                   readOnly
                   value={emailInput}
-                  className="w-full bg-slate-900/50 border border-slate-700/50 text-slate-400 pl-9 pr-3 py-2.5 rounded-xl text-xs outline-none cursor-not-allowed font-mono"
+                  className="w-full bg-slate-900/50 border border-slate-700/50 text-slate-400 ps-9 pe-3 py-2.5 rounded-xl text-xs outline-none cursor-not-allowed font-mono"
                   title="This email is permanent and cannot be changed during reset."
                 />
-                <Mail className="w-4 h-4 text-slate-600 absolute left-3 top-3" />
+                <Mail className="w-4 h-4 text-slate-600 absolute start-3 top-3" />
               </div>
               <p className="text-[10px] text-amber-400/80 mt-1.5 font-bold">
                 ⚠️ Security Notice: The verification code will be sent strictly to this permanent registered email.
@@ -350,12 +350,12 @@ export const EmailResetPasswordModal: React.FC<EmailResetPasswordModalProps> = (
                   }}
                   placeholder="Enter New PIN (e.g. 1234 or custom password)"
                   autoFocus
-                  className="w-full bg-slate-950 border border-slate-700 text-slate-100 pl-4 pr-10 py-2.5 rounded-xl font-mono text-sm outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-950 border border-slate-700 text-slate-100 ps-4 pe-10 py-2.5 rounded-xl font-mono text-sm outline-none focus:border-indigo-500"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-200"
+                  className="absolute end-3 top-2.5 text-slate-400 hover:text-slate-200"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4 text-indigo-400" /> : <Eye className="w-4 h-4" />}
                 </button>

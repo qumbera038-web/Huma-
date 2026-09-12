@@ -58,7 +58,7 @@ export const ExportView: React.FC = () => {
               <p className="text-slate-400 mt-2 text-lg">سب کچھ ایک ساتھ ڈاؤن لوڈ کریں اور ٹینشن ختم کریں</p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-start">
                <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10">
                  <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center text-blue-400">1</div>
                  <span className="text-sm font-bold text-slate-200">مکمل سورس کوڈ</span>

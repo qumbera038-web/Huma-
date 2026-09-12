@@ -503,7 +503,7 @@ For next orders or pipe supplies, WhatsApp us: 0300-5861463!`;
           </div>
 
           {/* Card 2: Auto Suggested Nearest Branch */}
-          <div className="flex items-start gap-3 border-t md:border-t-0 md:border-l border-slate-800 pt-3 md:pt-0 md:pl-4">
+          <div className="flex items-start gap-3 border-t md:border-t-0 md:border-s border-slate-800 pt-3 md:pt-0 md:ps-4">
             <div className="p-2.5 rounded-xl bg-blue-500/20 text-blue-400 shrink-0">
               <Building2 className="w-5 h-5" />
             </div>
@@ -529,7 +529,7 @@ For next orders or pipe supplies, WhatsApp us: 0300-5861463!`;
           </div>
 
           {/* Card 3: Assigned Plumber / Nearest Local Partner */}
-          <div className="flex items-start gap-3 border-t md:border-t-0 md:border-l border-slate-800 pt-3 md:pt-0 md:pl-4">
+          <div className="flex items-start gap-3 border-t md:border-t-0 md:border-s border-slate-800 pt-3 md:pt-0 md:ps-4">
             <div className={`p-2.5 rounded-xl shrink-0 ${isOutOfCity ? "bg-amber-500/20 text-amber-400" : "bg-emerald-500/20 text-emerald-400"}`}>
               <ShieldCheck className="w-5 h-5" />
             </div>
@@ -597,13 +597,13 @@ For next orders or pipe supplies, WhatsApp us: 0300-5861463!`;
               <div>
                 <label className="text-[11px] font-semibold text-slate-400 mb-1 block">Customer Full Name *</label>
                 <div className="relative">
-                  <User className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-500" />
+                  <User className="w-3.5 h-3.5 absolute start-3 top-3 text-slate-500" />
                   <input
                     type="text"
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
                     placeholder="e.g. Muhammad Usman"
-                    className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:border-blue-500 outline-none"
+                    className="w-full ps-9 pe-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:border-blue-500 outline-none"
                   />
                 </div>
               </div>
@@ -611,13 +611,13 @@ For next orders or pipe supplies, WhatsApp us: 0300-5861463!`;
               <div>
                 <label className="text-[11px] font-semibold text-slate-400 mb-1 block">WhatsApp / Mobile Phone *</label>
                 <div className="relative">
-                  <Phone className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-500" />
+                  <Phone className="w-3.5 h-3.5 absolute start-3 top-3 text-slate-500" />
                   <input
                     type="text"
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
                     placeholder="e.g. 0300-1234567"
-                    className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:border-blue-500 outline-none font-mono"
+                    className="w-full ps-9 pe-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:border-blue-500 outline-none font-mono"
                   />
                 </div>
               </div>
@@ -625,13 +625,13 @@ For next orders or pipe supplies, WhatsApp us: 0300-5861463!`;
               <div>
                 <label className="text-[11px] font-semibold text-slate-400 mb-1 block">Email (Optional)</label>
                 <div className="relative">
-                  <Mail className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-500" />
+                  <Mail className="w-3.5 h-3.5 absolute start-3 top-3 text-slate-500" />
                   <input
                     type="email"
                     value={customerEmail}
                     onChange={(e) => setCustomerEmail(e.target.value)}
                     placeholder="e.g. customer@gmail.com"
-                    className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:border-blue-500 outline-none"
+                    className="w-full ps-9 pe-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:border-blue-500 outline-none"
                   />
                 </div>
               </div>
@@ -639,13 +639,13 @@ For next orders or pipe supplies, WhatsApp us: 0300-5861463!`;
               <div>
                 <label className="text-[11px] font-semibold text-slate-400 mb-1 block">House Address & Nearest Landmark *</label>
                 <div className="relative">
-                  <MapPin className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-500" />
+                  <MapPin className="w-3.5 h-3.5 absolute start-3 top-3 text-slate-500" />
                   <input
                     type="text"
                     value={customerAddress}
                     onChange={(e) => setCustomerAddress(e.target.value)}
                     placeholder="e.g. Street 4, Hayatabad / University Town"
-                    className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:border-blue-500 outline-none"
+                    className="w-full ps-9 pe-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:border-blue-500 outline-none"
                   />
                 </div>
               </div>
@@ -832,7 +832,7 @@ For next orders or pipe supplies, WhatsApp us: 0300-5861463!`;
                       {isOutOfCity ? "Assigned Nearest Partner" : "Official Qumber Technician"}
                     </span>
                   </div>
-                  <div className="text-right">
+                  <div className="text-end">
                     <span className="text-base font-black text-amber-400 font-mono">
                       PKR {calculatedVisitCharge.toLocaleString()}
                     </span>

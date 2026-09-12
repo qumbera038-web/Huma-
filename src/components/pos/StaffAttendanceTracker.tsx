@@ -175,13 +175,13 @@ export const StaffAttendanceTracker: React.FC<StaffAttendanceTrackerProps> = ({
         <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
+              <Search className="w-3.5 h-3.5 absolute start-3 top-2.5 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search staff name or counter..."
                 value={searchStaff}
                 onChange={(e) => setSearchStaff(e.target.value)}
-                className="pl-9 pr-3 py-1.5 bg-slate-950 border border-slate-700 rounded-lg text-slate-200 text-xs outline-none focus:border-indigo-500 w-56"
+                className="ps-9 pe-3 py-1.5 bg-slate-950 border border-slate-700 rounded-lg text-slate-200 text-xs outline-none focus:border-indigo-500 w-56"
               />
             </div>
 
@@ -212,7 +212,7 @@ export const StaffAttendanceTracker: React.FC<StaffAttendanceTrackerProps> = ({
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-start text-xs">
             <thead>
               <tr className="border-b border-slate-800 text-slate-400 uppercase text-[10px] tracking-wider">
                 <th className="py-2.5 px-3">Date</th>
@@ -220,7 +220,7 @@ export const StaffAttendanceTracker: React.FC<StaffAttendanceTrackerProps> = ({
                 <th className="py-2.5 px-3">Branch & Counter</th>
                 <th className="py-2.5 px-3">Exact Login Time</th>
                 <th className="py-2.5 px-3">Shop Opening Tag</th>
-                <th className="py-2.5 px-3 text-right">Status</th>
+                <th className="py-2.5 px-3 text-end">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
@@ -285,7 +285,7 @@ export const StaffAttendanceTracker: React.FC<StaffAttendanceTrackerProps> = ({
                       )}
                     </td>
 
-                    <td className="py-3 px-3 text-right">
+                    <td className="py-3 px-3 text-end">
                       <span
                         className={`px-2 py-0.5 rounded font-bold text-[10px] ${
                           isOnTime

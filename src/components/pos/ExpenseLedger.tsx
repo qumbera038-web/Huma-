@@ -165,13 +165,13 @@ export const ExpenseLedger: React.FC<ExpenseLedgerProps> = ({
         {/* Filters Bar */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <input 
               type="text" 
               placeholder="خرچہ تلاش کریں..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2.5 pl-10 pr-4 text-sm focus:ring-1 focus:ring-indigo-500 outline-none transition-all"
+              className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2.5 ps-10 pe-4 text-sm focus:ring-1 focus:ring-indigo-500 outline-none transition-all"
             />
           </div>
 
@@ -213,7 +213,7 @@ export const ExpenseLedger: React.FC<ExpenseLedgerProps> = ({
       <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
         
         {/* Left Side: Summary Cards & Chart Info */}
-        <div className="w-full lg:w-80 border-r border-slate-800 bg-slate-900/30 p-6 overflow-y-auto custom-scrollbar">
+        <div className="w-full lg:w-80 border-e border-slate-800 bg-slate-900/30 p-6 overflow-y-auto custom-scrollbar">
           <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
             <PieChart className="w-4 h-4" />
             <span>کیٹیگری وائز خلاصہ</span>
@@ -277,15 +277,15 @@ export const ExpenseLedger: React.FC<ExpenseLedgerProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto custom-scrollbar">
-            <table className="w-full text-right border-collapse" dir="rtl">
+            <table className="w-full text-end border-collapse" dir="rtl">
               <thead className="sticky top-0 z-10 bg-slate-900 border-b border-slate-800">
                 <tr className="text-slate-500 text-[11px] font-bold uppercase tracking-wider">
-                  <th className="px-6 py-4 text-right">تاریخ (Date)</th>
-                  <th className="px-6 py-4 text-right">تفصیل (Description)</th>
-                  <th className="px-6 py-4 text-right">کیٹیگری</th>
-                  <th className="px-6 py-4 text-right">برانچ</th>
-                  <th className="px-6 py-4 text-right">ادائیگی</th>
-                  <th className="px-6 py-4 text-left">رقم (Amount)</th>
+                  <th className="px-6 py-4 text-end">تاریخ (Date)</th>
+                  <th className="px-6 py-4 text-end">تفصیل (Description)</th>
+                  <th className="px-6 py-4 text-end">کیٹیگری</th>
+                  <th className="px-6 py-4 text-end">برانچ</th>
+                  <th className="px-6 py-4 text-end">ادائیگی</th>
+                  <th className="px-6 py-4 text-start">رقم (Amount)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/50">
@@ -334,7 +334,7 @@ export const ExpenseLedger: React.FC<ExpenseLedgerProps> = ({
                           <Wallet className="w-3.5 h-3.5 text-slate-500" />
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-left whitespace-nowrap">
+                      <td className="px-6 py-4 text-start whitespace-nowrap">
                         <span className="text-base font-black text-white">Rs. {exp.amount.toLocaleString()}</span>
                       </td>
                     </motion.tr>
@@ -410,14 +410,14 @@ export const ExpenseLedger: React.FC<ExpenseLedgerProps> = ({
                         value={newExp.amount || ""}
                         onChange={(e) => setNewExp({ ...newExp, amount: parseFloat(e.target.value) || 0 })}
                         placeholder="0"
-                        className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-14 pr-4 text-white text-lg font-black focus:ring-1 focus:ring-indigo-500 outline-none transition-all"
+                        className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 ps-14 pe-4 text-white text-lg font-black focus:ring-1 focus:ring-indigo-500 outline-none transition-all"
                       />
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">Rs.</span>
+                      <span className="absolute start-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">Rs.</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-2 text-right" dir="rtl">
+                <div className="space-y-2 text-end" dir="rtl">
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">تفصیل / ڈسکرپشن (Description)</label>
                   <input 
                     type="text" 
@@ -425,29 +425,29 @@ export const ExpenseLedger: React.FC<ExpenseLedgerProps> = ({
                     value={newExp.description}
                     onChange={(e) => setNewExp({ ...newExp, description: e.target.value })}
                     placeholder="مثال: دکان کا کرایہ، بجلی کا بل وغیرہ"
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white text-right focus:ring-1 focus:ring-indigo-500 outline-none transition-all"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white text-end focus:ring-1 focus:ring-indigo-500 outline-none transition-all"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2 text-right" dir="rtl">
+                  <div className="space-y-2 text-end" dir="rtl">
                     <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">کیٹیگری (Category)</label>
                     <select 
                       value={newExp.category}
                       onChange={(e) => setNewExp({ ...newExp, category: e.target.value as ExpenseCategory })}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white text-right focus:ring-1 focus:ring-indigo-400 outline-none transition-all appearance-none cursor-pointer"
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white text-end focus:ring-1 focus:ring-indigo-400 outline-none transition-all appearance-none cursor-pointer"
                     >
                       {categories.map(cat => (
                         <option key={cat.value} value={cat.value}>{cat.urdu}</option>
                       ))}
                     </select>
                   </div>
-                  <div className="space-y-2 text-right" dir="rtl">
+                  <div className="space-y-2 text-end" dir="rtl">
                     <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">برانچ (Branch)</label>
                     <select 
                       value={newExp.branchId}
                       onChange={(e) => setNewExp({ ...newExp, branchId: e.target.value })}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white text-right focus:ring-1 focus:ring-indigo-400 outline-none transition-all appearance-none cursor-pointer"
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 px-4 text-white text-end focus:ring-1 focus:ring-indigo-400 outline-none transition-all appearance-none cursor-pointer"
                     >
                       {branches.map(b => (
                         <option key={b.id} value={b.id}>{b.urduName}</option>

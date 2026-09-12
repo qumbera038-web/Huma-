@@ -36,36 +36,60 @@ export const GlobalVoiceCommand: React.FC<GlobalVoiceCommandProps> = ({
         const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
         console.log("Voice Command Received: ", transcript);
 
-        // Command Routing Logic
-        if (transcript.includes("inventory") || transcript.includes("stock") || transcript.includes("اسٹاک") || transcript.includes("انوینٹری")) {
+        // Comprehensive Tab Navigation Routing Logic
+        if (transcript.includes("inventory") || transcript.includes("stock") || transcript.includes("products") || transcript.includes("اسٹاک") || transcript.includes("انوینٹری")) {
           setActiveTab("inventory");
           showToast("🎙️ Navigating to Inventory");
         } 
-        else if (transcript.includes("billing") || transcript.includes("invoice") || transcript.includes("cart") || transcript.includes("بل") || transcript.includes("نئی رسید")) {
+        else if (transcript.includes("billing") || transcript.includes("invoice") || transcript.includes("cart") || transcript.includes("bill") || transcript.includes("بل") || transcript.includes("نئی رسید")) {
           setActiveTab("billing");
           showToast("🎙️ Navigating to Billing Counter");
         }
-        else if (transcript.includes("report") || transcript.includes("sales") || transcript.includes("رپورٹ") || transcript.includes("سیلز")) {
+        else if (transcript.includes("report") || transcript.includes("sales") || transcript.includes("analytics") || transcript.includes("رپورٹ") || transcript.includes("سیلز")) {
           setActiveTab("reports");
           showToast("🎙️ Navigating to Sales Reports");
         }
-        else if (transcript.includes("khata") || transcript.includes("customer") || transcript.includes("ledger") || transcript.includes("کھاتہ") || transcript.includes("گاہک")) {
+        else if (transcript.includes("khata") || transcript.includes("customer") || transcript.includes("ledger") || transcript.includes("udhaar") || transcript.includes("کھاتہ") || transcript.includes("گاہک") || transcript.includes("ادھار")) {
           setActiveTab("khata");
           showToast("🎙️ Navigating to Customer Khata");
         }
-        else if (transcript.includes("whatsapp") || transcript.includes("واٹس ایپ")) {
+        else if (transcript.includes("whatsapp") || transcript.includes("chat") || transcript.includes("واٹس ایپ")) {
           setActiveTab("whatsapp_hub");
           showToast("🎙️ Navigating to WhatsApp Hub");
         }
-        else if (transcript.includes("attendance") || transcript.includes("حاضری")) {
+        else if (transcript.includes("attendance") || transcript.includes("staff") || transcript.includes("حاضری") || transcript.includes("اسٹاف")) {
           setActiveTab("attendance");
-          showToast("🎙️ Navigating to Attendance");
+          showToast("🎙️ Navigating to Staff Attendance");
         }
-        else if (transcript.includes("ai") || transcript.includes("estimator") || transcript.includes("plumbing")) {
+        else if (transcript.includes("estimator") || transcript.includes("plumbing") || transcript.includes("calculator") || transcript.includes("AI تخمینہ")) {
           setActiveTab("ai_estimator");
           showToast("🎙️ Navigating to AI Estimator");
         }
-        else if (transcript.includes("setting") || transcript.includes("سیٹنگ")) {
+        else if (transcript.includes("ai hub") || transcript.includes("gemini") || transcript.includes("smart assistant")) {
+          setActiveTab("ai_hub");
+          showToast("🎙️ Navigating to AI Hub");
+        }
+        else if (transcript.includes("export") || transcript.includes("download") || transcript.includes("backup") || transcript.includes("ایکسپورٹ") || transcript.includes("ڈاؤن لوڈ")) {
+          setActiveTab("export");
+          showToast("🎙️ Navigating to Export Center");
+        }
+        else if (transcript.includes("expense") || transcript.includes("kharcha") || transcript.includes("خرچہ") || transcript.includes("اخراجات")) {
+          setActiveTab("expense_ledger");
+          showToast("🎙️ Navigating to Expense Ledger");
+        }
+        else if (transcript.includes("branch") || transcript.includes("store network") || transcript.includes("برانچ")) {
+          setActiveTab("branches");
+          showToast("🎙️ Navigating to Branch Network");
+        }
+        else if (transcript.includes("security") || transcript.includes("motion") || transcript.includes("cctv") || transcript.includes("سیکیورٹی")) {
+          setActiveTab("motion_security");
+          showToast("🎙️ Navigating to Motion Security");
+        }
+        else if (transcript.includes("super admin") || transcript.includes("admin dashboard")) {
+          setActiveTab("super_admin_dashboard");
+          showToast("🎙️ Navigating to Super Admin Dashboard");
+        }
+        else if (transcript.includes("setting") || transcript.includes("config") || transcript.includes("سیٹنگ")) {
           setActiveTab("settings");
           showToast("🎙️ Navigating to Settings");
         }
@@ -120,7 +144,7 @@ export const GlobalVoiceCommand: React.FC<GlobalVoiceCommandProps> = ({
   };
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col-reverse items-center gap-3">
+    <div className="fixed bottom-6 start-1/2 -translate-x-1/2 z-50 flex flex-col-reverse items-center gap-3">
       {/* Main Unified Button */}
       <div className="flex items-center gap-2 bg-slate-900/90 backdrop-blur-xl border border-slate-700 p-1.5 rounded-full shadow-2xl shadow-blue-900/20">
         
@@ -140,7 +164,7 @@ export const GlobalVoiceCommand: React.FC<GlobalVoiceCommandProps> = ({
           title="Scan Barcode"
         >
           <ScanLine className="w-5 h-5" />
-          <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap pointer-events-none">Scan</span>
+          <span className="absolute -top-10 start-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap pointer-events-none">Scan</span>
         </button>
 
         {/* Voice Assistant Action (Center Prominent) */}
@@ -156,7 +180,7 @@ export const GlobalVoiceCommand: React.FC<GlobalVoiceCommandProps> = ({
           {isListening ? <Mic className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
           
           {isListening && (
-            <span className="absolute -top-1 -right-1 flex h-3 w-3">
+            <span className="absolute -top-1 -end-1 flex h-3 w-3">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
             </span>
@@ -170,7 +194,7 @@ export const GlobalVoiceCommand: React.FC<GlobalVoiceCommandProps> = ({
           title="More Actions"
         >
           {isExpanded ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-          <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap pointer-events-none">Tools</span>
+          <span className="absolute -top-10 start-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap pointer-events-none">Tools</span>
         </button>
       </div>
 

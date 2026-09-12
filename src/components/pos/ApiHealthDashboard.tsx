@@ -21,6 +21,7 @@ import {
   Info
 } from "lucide-react";
 import { ApiKeyPoolHealth, ApiKeyPoolItem } from "../../types.ts";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 interface ApiHealthDashboardProps {
   className?: string;
@@ -310,7 +311,7 @@ export const ApiHealthDashboard: React.FC<ApiHealthDashboardProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         {/* Active Key Index */}
         <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex flex-col justify-between space-y-2 relative overflow-hidden">
-          <div className="absolute right-2 top-2 w-16 h-16 bg-blue-500/5 rounded-full blur-xl pointer-events-none" />
+          <div className="absolute end-2 top-2 w-16 h-16 bg-blue-500/5 rounded-full blur-xl pointer-events-none" />
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
               <Layers className="w-3.5 h-3.5 text-blue-400" />
@@ -335,7 +336,7 @@ export const ApiHealthDashboard: React.FC<ApiHealthDashboardProps> = ({
 
         {/* Rotation Count */}
         <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex flex-col justify-between space-y-2 relative overflow-hidden">
-          <div className="absolute right-2 top-2 w-16 h-16 bg-indigo-500/5 rounded-full blur-xl pointer-events-none" />
+          <div className="absolute end-2 top-2 w-16 h-16 bg-indigo-500/5 rounded-full blur-xl pointer-events-none" />
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
               <RotateCw className="w-3.5 h-3.5 text-indigo-400" />
@@ -362,7 +363,7 @@ export const ApiHealthDashboard: React.FC<ApiHealthDashboardProps> = ({
 
         {/* Total API Requests Handled */}
         <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex flex-col justify-between space-y-2 relative overflow-hidden">
-          <div className="absolute right-2 top-2 w-16 h-16 bg-emerald-500/5 rounded-full blur-xl pointer-events-none" />
+          <div className="absolute end-2 top-2 w-16 h-16 bg-emerald-500/5 rounded-full blur-xl pointer-events-none" />
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
               <Cpu className="w-3.5 h-3.5 text-emerald-400" />
@@ -386,7 +387,7 @@ export const ApiHealthDashboard: React.FC<ApiHealthDashboardProps> = ({
 
         {/* Rate Limit Recovery Events (429) */}
         <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex flex-col justify-between space-y-2 relative overflow-hidden">
-          <div className="absolute right-2 top-2 w-16 h-16 bg-amber-500/5 rounded-full blur-xl pointer-events-none" />
+          <div className="absolute end-2 top-2 w-16 h-16 bg-amber-500/5 rounded-full blur-xl pointer-events-none" />
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
@@ -504,7 +505,7 @@ export const ApiHealthDashboard: React.FC<ApiHealthDashboardProps> = ({
                   <button
                     type="button"
                     onClick={() => copyToClipboard(item.maskedKey, item.id)}
-                    className="text-slate-400 hover:text-slate-200 ml-2 shrink-0 p-1"
+                    className="text-slate-400 hover:text-slate-200 ms-2 shrink-0 p-1"
                     title="Copy masked key"
                   >
                     {copiedId === item.id ? (

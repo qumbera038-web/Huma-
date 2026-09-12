@@ -437,7 +437,7 @@ export const CustomerKhata: React.FC<CustomerKhataProps> = ({
           </div>
 
           {/* Total Market Udhaar Badge */}
-          <div className="h-11 px-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex flex-col justify-center text-right shrink-0 min-w-[150px]">
+          <div className="h-11 px-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex flex-col justify-center text-end shrink-0 min-w-[150px]">
             <span className="text-[9px] text-amber-300 block uppercase font-bold tracking-wider">
               Total Market Udhaar
             </span>
@@ -483,26 +483,26 @@ export const CustomerKhata: React.FC<CustomerKhataProps> = ({
             </div>
 
             <div className="relative w-full sm:w-72">
-              <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+              <Search className="w-4 h-4 absolute start-3 top-2.5 text-slate-400" />
               <input
                 type="text"
                 value={traderSearchTerm}
                 onChange={(e) => setTraderSearchTerm(e.target.value)}
                 placeholder="Search trader by name, phone..."
-                className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-slate-100 placeholder-slate-500 outline-none focus:border-amber-500"
+                className="w-full ps-9 pe-3 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-slate-100 placeholder-slate-500 outline-none focus:border-amber-500"
               />
             </div>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full text-start text-xs border-collapse">
               <thead>
                 <tr className="border-b border-slate-800 text-slate-400 bg-slate-950/40">
                   <th className="py-3 px-4 font-semibold">Trader / Contractor</th>
                   <th className="py-3 px-4 font-semibold">Phone & Location</th>
-                  <th className="py-3 px-4 font-semibold text-right">Total Purchases</th>
-                  <th className="py-3 px-4 font-semibold text-right">Khata Udhaar Balance</th>
-                  <th className="py-3 px-4 font-semibold text-right">Credit Limit</th>
+                  <th className="py-3 px-4 font-semibold text-end">Total Purchases</th>
+                  <th className="py-3 px-4 font-semibold text-end">Khata Udhaar Balance</th>
+                  <th className="py-3 px-4 font-semibold text-end">Credit Limit</th>
                   <th className="py-3 px-4 font-semibold text-center">Action</th>
                 </tr>
               </thead>
@@ -533,12 +533,12 @@ export const CustomerKhata: React.FC<CustomerKhataProps> = ({
                           <span className="text-[10px] text-slate-400">{trader.address || "Peshawar"}</span>
                         </div>
                       </td>
-                      <td className="py-3.5 px-4 text-right">
+                      <td className="py-3.5 px-4 text-end">
                         <span className="font-black text-emerald-400 font-mono text-xs">
                           {settings.currencySymbol} {trader.totalPurchases.toLocaleString()}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-right">
+                      <td className="py-3.5 px-4 text-end">
                         <span
                           className={`font-bold font-mono text-xs ${
                             trader.outstandingKhata > 0 ? "text-amber-400" : "text-slate-400"
@@ -547,7 +547,7 @@ export const CustomerKhata: React.FC<CustomerKhataProps> = ({
                           {settings.currencySymbol} {trader.outstandingKhata.toLocaleString()}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-right font-mono text-slate-400">
+                      <td className="py-3.5 px-4 text-end font-mono text-slate-400">
                         {settings.currencySymbol} {trader.creditLimit.toLocaleString()}
                       </td>
                       <td className="py-3.5 px-4 text-center">
@@ -575,13 +575,13 @@ export const CustomerKhata: React.FC<CustomerKhataProps> = ({
           <div className="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col shadow-xl overflow-hidden">
             <div className="p-3 border-b border-slate-800 bg-slate-950/40">
               <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+                <Search className="w-4 h-4 absolute start-3 top-2.5 text-slate-400" />
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Search contractor, plumber, phone..."
-                  className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-xs text-slate-100 placeholder-slate-500 outline-none focus:border-blue-500"
+                  className="w-full ps-9 pe-3 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-xs text-slate-100 placeholder-slate-500 outline-none focus:border-blue-500"
                 />
               </div>
             </div>
@@ -598,7 +598,7 @@ export const CustomerKhata: React.FC<CustomerKhataProps> = ({
                     onClick={() => setSelectedCustomerId(c.id)}
                     className={`p-3 cursor-pointer transition ${
                       activeCustomer?.id === c.id
-                        ? "bg-blue-950/40 border-l-4 border-blue-500"
+                        ? "bg-blue-950/40 border-s-4 border-blue-500"
                         : "hover:bg-slate-800/40"
                     }`}
                   >
@@ -611,7 +611,7 @@ export const CustomerKhata: React.FC<CustomerKhataProps> = ({
                         </p>
                       </div>
 
-                      <div className="text-right">
+                      <div className="text-end">
                         <span className="text-[10px] text-slate-500 block">Balance:</span>
                         <span
                           className={`font-bold font-mono text-xs ${
@@ -684,12 +684,12 @@ export const CustomerKhata: React.FC<CustomerKhataProps> = ({
                       </button>
 
                       {showKhataExportMenu && (
-                        <div className="absolute right-0 top-11 w-64 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-2 z-50 flex flex-col gap-1.5 animate-in fade-in zoom-in-95">
+                        <div className="absolute end-0 top-11 w-64 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-2 z-50 flex flex-col gap-1.5 animate-in fade-in zoom-in-95">
                           <a
                             href="/haider_sanitary_pos.apk"
                             download="haider_sanitary_pos.apk"
                             onClick={() => setShowKhataExportMenu(false)}
-                            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-950 bg-amber-500 hover:bg-amber-400 transition"
+                            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-start text-xs font-bold text-slate-950 bg-amber-500 hover:bg-amber-400 transition"
                           >
                             <Smartphone className="w-3.5 h-3.5 shrink-0 text-slate-950" />
                             <div>
@@ -702,7 +702,7 @@ export const CustomerKhata: React.FC<CustomerKhataProps> = ({
                             href="/haider_sanitary_pos_single_file.html"
                             download="haider_sanitary_pos_single_file.html"
                             onClick={() => setShowKhataExportMenu(false)}
-                            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition"
+                            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-start text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition"
                           >
                             <Download className="w-3.5 h-3.5 shrink-0 text-white" />
                             <div>
@@ -717,7 +717,7 @@ export const CustomerKhata: React.FC<CustomerKhataProps> = ({
                               setShowKhataExportMenu(false);
                               exportKhataStatement();
                             }}
-                            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs font-semibold text-slate-300 hover:bg-slate-800 transition border-t border-slate-800 mt-1 pt-2"
+                            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-start text-xs font-semibold text-slate-300 hover:bg-slate-800 transition border-t border-slate-800 mt-1 pt-2"
                           >
                             <FileSpreadsheet className="w-3.5 h-3.5 shrink-0 text-blue-400" />
                             <span>Export Customer Ledger (CSV)</span>
@@ -729,7 +729,7 @@ export const CustomerKhata: React.FC<CustomerKhataProps> = ({
                               setShowKhataExportMenu(false);
                               exportAllDataBackup();
                             }}
-                            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs font-semibold text-purple-300 hover:bg-purple-900/20 transition"
+                            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-start text-xs font-semibold text-purple-300 hover:bg-purple-900/20 transition"
                           >
                             <Database className="w-3.5 h-3.5 shrink-0 text-purple-400" />
                             <span>Backup All Khata (JSON)</span>
@@ -791,15 +791,15 @@ export const CustomerKhata: React.FC<CustomerKhataProps> = ({
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs border-collapse">
+                      <table className="w-full text-start text-xs border-collapse">
                         <thead>
                           <tr className="border-b border-slate-800 text-slate-400 bg-slate-950/20">
                             <th className="py-2.5 px-3">Date</th>
                             <th className="py-2.5 px-3">Description / Mode</th>
                             <th className="py-2.5 px-3">Proof / Bank Slip</th>
-                            <th className="py-2.5 px-3 text-right">Debit (Udhaar)</th>
-                            <th className="py-2.5 px-3 text-right">Credit (Received)</th>
-                            <th className="py-2.5 px-3 text-right">Balance</th>
+                            <th className="py-2.5 px-3 text-end">Debit (Udhaar)</th>
+                            <th className="py-2.5 px-3 text-end">Credit (Received)</th>
+                            <th className="py-2.5 px-3 text-end">Balance</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-800/50">
@@ -852,17 +852,17 @@ export const CustomerKhata: React.FC<CustomerKhataProps> = ({
                                   <span className="text-[10px] text-slate-500 italic">No slip</span>
                                 )}
                               </td>
-                              <td className="py-2.5 px-3 text-right font-mono text-amber-400 font-semibold">
+                              <td className="py-2.5 px-3 text-end font-mono text-amber-400 font-semibold">
                                 {tx.type === "debit"
                                   ? `${settings.currencySymbol} ${tx.amount.toLocaleString()}`
                                   : "—"}
                               </td>
-                              <td className="py-2.5 px-3 text-right font-mono text-emerald-400 font-semibold">
+                              <td className="py-2.5 px-3 text-end font-mono text-emerald-400 font-semibold">
                                 {tx.type === "credit"
                                   ? `${settings.currencySymbol} ${tx.amount.toLocaleString()}`
                                   : "—"}
                               </td>
-                              <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-200">
+                              <td className="py-2.5 px-3 text-end font-mono font-bold text-slate-200">
                                 {settings.currencySymbol} {tx.balanceAfter.toLocaleString()}
                               </td>
                             </tr>
@@ -1453,7 +1453,7 @@ export const CustomerKhata: React.FC<CustomerKhataProps> = ({
                 )}
               </h4>
 
-              <div className="max-h-56 overflow-y-auto space-y-2.5 pr-1">
+              <div className="max-h-56 overflow-y-auto space-y-2.5 pe-1">
                 {botLogs.map((log) => (
                   <div
                     key={log.id}

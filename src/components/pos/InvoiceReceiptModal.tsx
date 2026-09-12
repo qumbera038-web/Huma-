@@ -328,7 +328,7 @@ ${showOperator ? `*Billed By:* ${invoice.cashierName} (${invoice.counterStation 
                       {invoice.invoiceNumber}
                     </span>
                   </div>
-                  <div className="text-right">
+                  <div className="text-end">
                     <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold block">
                       Payment Mode (طریقہ ادائیگی):
                     </span>
@@ -349,7 +349,7 @@ ${showOperator ? `*Billed By:* ${invoice.cashierName} (${invoice.counterStation 
                       })}
                     </span>
                   </div>
-                  <div className="text-right">
+                  <div className="text-end">
                     <span className="text-slate-500 font-medium">Time (وقت): </span>
                     <span className="font-mono font-bold text-slate-900">
                       {new Date(invoice.date).toLocaleTimeString("en-US", {
@@ -369,7 +369,7 @@ ${showOperator ? `*Billed By:* ${invoice.cashierName} (${invoice.counterStation 
                       <span className="text-slate-600 font-mono text-[10px] block">📱 {invoice.customerPhone}</span>
                     )}
                   </div>
-                  <div className="text-right">
+                  <div className="text-end">
                     <span className="text-slate-500 font-medium">Billed By: </span>
                     <span className="font-bold text-slate-900 block">{invoice.cashierName}</span>
                     <span className="text-slate-600 text-[10px] font-mono block">{invoice.counterStation || "Counter #1"}</span>
@@ -407,18 +407,18 @@ ${showOperator ? `*Billed By:* ${invoice.cashierName} (${invoice.counterStation 
                 <table className="w-full text-[11px] border-collapse">
                   <thead>
                     <tr className="border-y-2 border-slate-800 bg-slate-100 text-slate-900 font-black">
-                      <th className="py-1.5 px-1 text-left w-[8%]">#</th>
-                      <th className="py-1.5 px-1 text-left w-[46%]">Product / Item (سامان)</th>
+                      <th className="py-1.5 px-1 text-start w-[8%]">#</th>
+                      <th className="py-1.5 px-1 text-start w-[46%]">Product / Item (سامان)</th>
                       <th className="py-1.5 px-1 text-center w-[15%]">Qty (تعداد)</th>
-                      <th className="py-1.5 px-1 text-right w-[15%]">Price (قیمت)</th>
-                      <th className="py-1.5 px-1 text-right w-[16%]">Total (رقم)</th>
+                      <th className="py-1.5 px-1 text-end w-[15%]">Price (قیمت)</th>
+                      <th className="py-1.5 px-1 text-end w-[16%]">Total (رقم)</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
                     {invoice.items.map((item, idx) => (
                       <tr key={idx} className="align-top">
                         <td className="py-1.5 px-1 font-mono font-bold text-slate-500">{idx + 1}.</td>
-                        <td className="py-1.5 px-1 pr-1">
+                        <td className="py-1.5 px-1 pe-1">
                           <p className="font-bold text-slate-900 leading-snug">{item.product.name}</p>
                           {(item.product.brand || item.product.size || item.product.color) && (
                             <p className="text-[9px] text-slate-500 font-sans mt-0.5">
@@ -429,10 +429,10 @@ ${showOperator ? `*Billed By:* ${invoice.cashierName} (${invoice.counterStation 
                         <td className="py-1.5 px-1 text-center font-mono font-bold text-slate-900 whitespace-nowrap">
                           {item.quantity} <span className="text-[9px] text-slate-500 font-sans">{item.product.unit || "pcs"}</span>
                         </td>
-                        <td className="py-1.5 px-1 text-right font-mono text-slate-700 whitespace-nowrap">
+                        <td className="py-1.5 px-1 text-end font-mono text-slate-700 whitespace-nowrap">
                           {item.unitPrice.toLocaleString()}
                         </td>
-                        <td className="py-1.5 px-1 text-right font-mono font-bold text-slate-950 whitespace-nowrap">
+                        <td className="py-1.5 px-1 text-end font-mono font-bold text-slate-950 whitespace-nowrap">
                           {item.total.toLocaleString()}
                         </td>
                       </tr>

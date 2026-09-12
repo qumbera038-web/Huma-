@@ -337,7 +337,7 @@ export const WhatsAppHub: React.FC<WhatsAppHubProps> = ({
               {chatMessages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`flex flex-col max-w-[85%] ${msg.isSelf ? "ml-auto items-end" : "mr-auto items-start"}`}
+                  className={`flex flex-col max-w-[85%] ${msg.isSelf ? "ms-auto items-end" : "me-auto items-start"}`}
                 >
                   <div className="flex items-center gap-1.5 mb-1 text-[9px] text-slate-400">
                     <span className="font-bold text-slate-300">{msg.senderName}</span>
@@ -347,12 +347,12 @@ export const WhatsAppHub: React.FC<WhatsAppHubProps> = ({
                   <div
                     className={`p-3 rounded-2xl text-xs font-semibold leading-relaxed shadow-md ${
                       msg.isSelf
-                        ? "bg-emerald-600 text-white rounded-tr-none"
-                        : "bg-slate-900 border border-slate-800 text-slate-100 rounded-tl-none"
+                        ? "bg-emerald-600 text-white rounded-te-none"
+                        : "bg-slate-900 border border-slate-800 text-slate-100 rounded-ts-none"
                     }`}
                   >
                     {msg.message}
-                    <span className="block text-[8px] text-right text-slate-300/80 mt-1 font-mono">
+                    <span className="block text-[8px] text-end text-slate-300/80 mt-1 font-mono">
                       {msg.time}
                     </span>
                   </div>
@@ -361,9 +361,9 @@ export const WhatsAppHub: React.FC<WhatsAppHubProps> = ({
 
               {/* Bot typing simulator */}
               {isTyping && (
-                <div className="flex flex-col mr-auto max-w-[85%] items-start animate-pulse">
+                <div className="flex flex-col me-auto max-w-[85%] items-start animate-pulse">
                   <span className="text-[9px] text-slate-400 mb-1 font-bold">{typingSender} typing...</span>
-                  <div className="p-3 bg-slate-900 border border-slate-800 text-slate-400 rounded-2xl rounded-tl-none text-xs flex items-center gap-2">
+                  <div className="p-3 bg-slate-900 border border-slate-800 text-slate-400 rounded-2xl rounded-ts-none text-xs flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" />
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce delay-75" />
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce delay-150" />
@@ -725,13 +725,13 @@ export const WhatsAppHub: React.FC<WhatsAppHubProps> = ({
         <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
+              <Search className="w-3.5 h-3.5 absolute start-3 top-2.5 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search customer, phone, item..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-3 py-1.5 bg-slate-950 border border-slate-700 rounded-lg text-slate-200 text-xs outline-none focus:border-emerald-500 w-56 sm:w-64"
+                className="ps-9 pe-3 py-1.5 bg-slate-950 border border-slate-700 rounded-lg text-slate-200 text-xs outline-none focus:border-emerald-500 w-56 sm:w-64"
               />
             </div>
 
@@ -768,7 +768,7 @@ export const WhatsAppHub: React.FC<WhatsAppHubProps> = ({
 
         {/* Orders List Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-start text-xs">
             <thead>
               <tr className="border-b border-slate-800 text-slate-400 uppercase text-[10px] tracking-wider">
                 <th className="py-2.5 px-3">Date / ID</th>
@@ -776,7 +776,7 @@ export const WhatsAppHub: React.FC<WhatsAppHubProps> = ({
                 <th className="py-2.5 px-3">Assigned Branch</th>
                 <th className="py-2.5 px-3">Order Items & Total</th>
                 <th className="py-2.5 px-3">Status</th>
-                <th className="py-2.5 px-3 text-right">WhatsApp Action</th>
+                <th className="py-2.5 px-3 text-end">WhatsApp Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
@@ -840,7 +840,7 @@ export const WhatsAppHub: React.FC<WhatsAppHubProps> = ({
                       </select>
                     </td>
 
-                    <td className="py-3 px-3 text-right">
+                    <td className="py-3 px-3 text-end">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => sendWhatsAppDirect(order.customerPhone, defaultMsg)}

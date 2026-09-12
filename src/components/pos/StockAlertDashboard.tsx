@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { Product, StoreSettings } from "../../types";
 import { useLanguage } from "../../context/LanguageContext";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import jsPDF from "jspdf";
 import {
   AlertTriangle,
@@ -407,6 +408,10 @@ export const StockAlertDashboard: React.FC<StockAlertDashboardProps> = ({
         </div>
       )}
 
+      <div className="flex justify-end">
+        <LanguageSwitcher />
+      </div>
+
       {/* Top Header Card */}
       <div className="bg-gradient-to-r from-rose-950/40 via-slate-900/90 to-amber-950/40 border border-rose-500/30 p-5 rounded-2xl shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="space-y-1">
@@ -430,7 +435,7 @@ export const StockAlertDashboard: React.FC<StockAlertDashboardProps> = ({
               </h2>
             </div>
           </div>
-          <p className="text-xs text-slate-400 pl-8">
+          <p className="text-xs text-slate-400 ps-8">
             Highlighting all items that have breached safety thresholds. Adjust suggested reorder quantities, print physical purchase sheets, or export purchase lists for suppliers.
           </p>
         </div>
@@ -564,13 +569,13 @@ export const StockAlertDashboard: React.FC<StockAlertDashboardProps> = ({
           <div className="flex flex-1 items-center flex-wrap gap-2">
             {/* Search */}
             <div className="relative flex-1 min-w-[200px] max-w-sm">
-              <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+              <Search className="w-4 h-4 absolute start-3 top-2.5 text-slate-400" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search by code, product name, barcode..."
-                className="w-full pl-9 pr-3 py-2 bg-slate-900/80 border border-slate-700/80 rounded-xl text-xs text-slate-100 placeholder-slate-500 outline-none focus:border-rose-500 transition"
+                className="w-full ps-9 pe-3 py-2 bg-slate-900/80 border border-slate-700/80 rounded-xl text-xs text-slate-100 placeholder-slate-500 outline-none focus:border-rose-500 transition"
               />
             </div>
 
@@ -649,7 +654,7 @@ export const StockAlertDashboard: React.FC<StockAlertDashboardProps> = ({
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="w-full text-start text-xs border-collapse">
             <thead>
               <tr className="border-b border-slate-800 text-slate-400 bg-slate-950/70">
                 <th className="py-3 px-4 font-semibold w-12 text-center">Sr #</th>
@@ -661,9 +666,9 @@ export const StockAlertDashboard: React.FC<StockAlertDashboardProps> = ({
                 <th className="py-3 px-4 font-semibold text-center">Threshold</th>
                 <th className="py-3 px-4 font-semibold text-center">Shortfall</th>
                 <th className="py-3 px-4 font-semibold text-center min-w-[140px]">Suggested Reorder</th>
-                <th className="py-3 px-4 font-semibold text-right">Est. Unit Cost</th>
-                <th className="py-3 px-4 font-semibold text-right">Total Est. Budget</th>
-                <th className="py-3 px-4 font-semibold text-right min-w-[130px]">Quick Stock In</th>
+                <th className="py-3 px-4 font-semibold text-end">Est. Unit Cost</th>
+                <th className="py-3 px-4 font-semibold text-end">Total Est. Budget</th>
+                <th className="py-3 px-4 font-semibold text-end min-w-[130px]">Quick Stock In</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
@@ -813,17 +818,17 @@ export const StockAlertDashboard: React.FC<StockAlertDashboardProps> = ({
                       </td>
 
                       {/* Unit Cost */}
-                      <td className="py-3.5 px-4 text-right font-mono text-slate-400">
+                      <td className="py-3.5 px-4 text-end font-mono text-slate-400">
                         {settings.currencySymbol} {p.costPrice.toLocaleString()}
                       </td>
 
                       {/* Total Est Budget */}
-                      <td className="py-3.5 px-4 text-right font-mono font-black text-amber-300">
+                      <td className="py-3.5 px-4 text-end font-mono font-black text-amber-300">
                         {settings.currencySymbol} {lineCost.toLocaleString()}
                       </td>
 
                       {/* Quick Stock In Actions */}
-                      <td className="py-3.5 px-4 text-right">
+                      <td className="py-3.5 px-4 text-end">
                         <div className="flex items-center justify-end gap-1">
                           <button
                             type="button"
@@ -915,7 +920,7 @@ export const StockAlertDashboard: React.FC<StockAlertDashboardProps> = ({
                       {settings.address || "Main Sanitary Market"} | Phone: {settings.phone || "0300-1234567"}
                     </p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-end">
                     <span className="inline-block px-2 py-0.5 bg-slate-900 text-white font-bold text-[10px] rounded">
                       STOCK REQUISITION
                     </span>
@@ -949,7 +954,7 @@ export const StockAlertDashboard: React.FC<StockAlertDashboardProps> = ({
                 </div>
 
                 {/* Itemized Table */}
-                <table className="w-full text-left border-collapse text-[10px]">
+                <table className="w-full text-start border-collapse text-[10px]">
                   <thead>
                     <tr className="bg-slate-900 text-white font-bold border-b border-slate-900">
                       <th className="p-1.5 text-center w-8">Sr#</th>
@@ -959,8 +964,8 @@ export const StockAlertDashboard: React.FC<StockAlertDashboardProps> = ({
                       <th className="p-1.5 text-center w-14">In Stock</th>
                       <th className="p-1.5 text-center w-12">Min</th>
                       <th className="p-1.5 text-center w-16 bg-blue-900 text-white">Order Qty</th>
-                      <th className="p-1.5 text-right w-16">Unit Cost</th>
-                      <th className="p-1.5 text-right w-20">Est. Total</th>
+                      <th className="p-1.5 text-end w-16">Unit Cost</th>
+                      <th className="p-1.5 text-end w-20">Est. Total</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 border-b border-slate-300">
@@ -974,9 +979,9 @@ export const StockAlertDashboard: React.FC<StockAlertDashboardProps> = ({
                           <td className="p-1.5 font-mono font-bold text-slate-800">{p.code}</td>
                           <td className="p-1.5">
                             <span className="font-bold text-slate-900">{p.name}</span>
-                            {p.size && <span className="text-slate-500 ml-1">({p.size})</span>}
+                            {p.size && <span className="text-slate-500 ms-1">({p.size})</span>}
                             {isZero && (
-                              <span className="text-[8px] ml-1.5 px-1 py-0.2 bg-red-100 text-red-700 font-bold rounded">
+                              <span className="text-[8px] ms-1.5 px-1 py-0.2 bg-red-100 text-red-700 font-bold rounded">
                                 NIL STOCK
                               </span>
                             )}
@@ -991,10 +996,10 @@ export const StockAlertDashboard: React.FC<StockAlertDashboardProps> = ({
                           <td className="p-1.5 text-center font-mono font-black text-blue-900 bg-blue-50">
                             {orderQty} {p.unit}
                           </td>
-                          <td className="p-1.5 text-right font-mono text-slate-600">
+                          <td className="p-1.5 text-end font-mono text-slate-600">
                             {p.costPrice.toLocaleString()}
                           </td>
-                          <td className="p-1.5 text-right font-mono font-bold text-slate-900">
+                          <td className="p-1.5 text-end font-mono font-bold text-slate-900">
                             {lineCost.toLocaleString()}
                           </td>
                         </tr>
@@ -1003,14 +1008,14 @@ export const StockAlertDashboard: React.FC<StockAlertDashboardProps> = ({
                   </tbody>
                   <tfoot>
                     <tr className="bg-slate-100 font-bold border-t-2 border-slate-900 text-slate-900">
-                      <td colSpan={6} className="p-2 text-right">
+                      <td colSpan={6} className="p-2 text-end">
                         Grand Total:
                       </td>
                       <td className="p-2 text-center text-blue-900 font-black">
                         {totalUnitsToOrder} Units
                       </td>
-                      <td className="p-2 text-right">Budget:</td>
-                      <td className="p-2 text-right font-black">
+                      <td className="p-2 text-end">Budget:</td>
+                      <td className="p-2 text-end font-black">
                         Rs. {totalEstReorderCost.toLocaleString()}
                       </td>
                     </tr>

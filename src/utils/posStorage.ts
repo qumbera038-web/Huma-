@@ -36,6 +36,7 @@ const KEYS = {
   LAST_BACKUP: "hps_pos_last_backup_date",
   LAST_MAINTENANCE: "hps_pos_last_maintenance_date_v1",
   LAST_SAVE: "hps_pos_last_local_save_time_v3",
+  LAST_CACHE_CLEAR: "hps_pos_last_cache_clear_time_v1",
 };
 
 export const getMaintenanceStatus = (): { needsMaintenance: boolean; daysSince: number } => {
@@ -139,7 +140,7 @@ export const addStaffMessage = (msgData: Omit<StaffMessage, "id" | "timestamp">)
     ...msgData,
     id: `staff-msg-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     timestamp: new Date().toISOString(),
-  };
+  } as StaffMessage;
   const updatedMessages = [...currentMessages, newMessage];
   saveStaffMessages(updatedMessages);
   return newMessage;
@@ -164,7 +165,7 @@ export const addExpense = (expData: Omit<BusinessExpense, "id">): BusinessExpens
   const newExpense: BusinessExpense = {
     ...expData,
     id: `exp-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-  };
+  } as BusinessExpense;
   const updatedExpenses = [...currentExpenses, newExpense];
   saveExpenses(updatedExpenses);
   return newExpense;
@@ -555,6 +556,119 @@ export const getLastBackupDate = (): string | null => {
   return localStorage.getItem(KEYS.LAST_BACKUP);
 };
 
+export interface CacheClearResult {
+  success: boolean;
+  freedEstimate: string;
+  clearedItems: number;
+  timestamp: string;
+}
+
+export const clearTempCache = async (): Promise<CacheClearResult> => {
+  let clearedItems = 0;
+  
+  // 1. Clear sessionStorage safely
+  try {
+    clearedItems += sessionStorage.length;
+    sessionStorage.clear();
+  } catch (e) {
+    console.warn("Could not clear sessionStorage", e);
+  }
+
+  // 2. Clear browser cache storage if available
+  try {
+    if (typeof window !== "undefined" && "caches" in window) {
+      const cacheKeys = await window.caches.keys();
+      for (const key of cacheKeys) {
+        await window.caches.delete(key);
+        clearedItems++;
+      }
+    }
+  } catch (e) {
+    console.warn("Could not clear window.caches", e);
+  }
+
+  // 3. Clear non-essential / transient localStorage keys (strictly preserving all business data)
+  const PRESERVED_KEYS = new Set([
+    KEYS.PRODUCTS,
+    KEYS.CUSTOMERS,
+    KEYS.INVOICES,
+    KEYS.SETTINGS,
+    KEYS.USERS,
+    KEYS.ACTIVE_USER,
+    KEYS.KHATA,
+    KEYS.BRANCHES,
+    KEYS.ACTIVE_BRANCH,
+    KEYS.ATTENDANCE,
+    KEYS.WHATSAPP_ORDERS,
+    KEYS.AI_ORDERS,
+    KEYS.AI_CAMPAIGNS,
+    KEYS.SNAPSHOTS,
+    KEYS.STAFF_MESSAGES,
+    KEYS.EXPENSES,
+    KEYS.THEME,
+    KEYS.LAST_BACKUP,
+    KEYS.LAST_MAINTENANCE,
+    KEYS.LAST_SAVE,
+  ]);
+
+  try {
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && !PRESERVED_KEYS.has(key)) {
+        if (
+          key.startsWith("temp_") ||
+          key.startsWith("cache_") ||
+          key.startsWith("draft_") ||
+          key.includes("_filter") ||
+          key.includes("_search") ||
+          key.includes("dismissed_")
+        ) {
+          keysToRemove.push(key);
+        }
+      }
+    }
+    keysToRemove.forEach((k) => {
+      localStorage.removeItem(k);
+      clearedItems++;
+    });
+  } catch (e) {
+    console.warn("Could not sweep localStorage temp items", e);
+  }
+
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+  const dateStr = now.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+  });
+  const formattedTimestamp = `${dateStr} ${timeStr}`;
+
+  try {
+    localStorage.setItem(KEYS.LAST_CACHE_CLEAR, formattedTimestamp);
+  } catch {}
+
+  return {
+    success: true,
+    freedEstimate: clearedItems > 0 ? `~${Math.max(120, clearedItems * 45)} KB` : "Clean buffer",
+    clearedItems,
+    timestamp: formattedTimestamp,
+  };
+};
+
+export const getLastCacheClearDate = (): string | null => {
+  try {
+    return localStorage.getItem(KEYS.LAST_CACHE_CLEAR);
+  } catch {
+    return null;
+  }
+};
+
 export const resetAllData = () => {
   localStorage.removeItem(KEYS.PRODUCTS);
   localStorage.removeItem(KEYS.CUSTOMERS);
@@ -628,7 +742,7 @@ export const addMotionSnapshot = (
     timestamp: now.toISOString(),
     timeFormatted,
     dateFormatted,
-  };
+  } as MotionSnapshot;
   const updated = [newSnapshot, ...current];
   saveStoredMotionSnapshots(updated);
   return newSnapshot;

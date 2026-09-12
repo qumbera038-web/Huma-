@@ -39,7 +39,7 @@ export function FloatingActionMenu({ setActiveTab, onAddNewCustomer }: Props) {
   return (
     <>
       {/* Floating Button & Menu */}
-      <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
+      <div className="fixed bottom-6 end-6 z-40 flex flex-col items-end gap-3">
         {isOpen && (
           <div className="flex flex-col gap-3 animate-in slide-in-from-bottom-5 fade-in duration-200 origin-bottom">
             <button
@@ -49,7 +49,7 @@ export function FloatingActionMenu({ setActiveTab, onAddNewCustomer }: Props) {
               }}
               className="flex items-center gap-3 bg-amber-500 text-slate-950 font-bold px-4 py-3 rounded-full shadow-[0_8px_30px_rgb(245,158,11,0.3)] hover:shadow-[0_8px_30px_rgb(245,158,11,0.5)] hover:scale-105 transition-all border border-amber-400"
             >
-              <span className="text-sm pr-1">Download APK & 1-File</span>
+              <span className="text-sm pe-1">Download APK & 1-File</span>
               <div className="bg-slate-950 text-amber-400 p-2 rounded-full">
                 <Plus className="w-4 h-4" />
               </div>
@@ -62,7 +62,7 @@ export function FloatingActionMenu({ setActiveTab, onAddNewCustomer }: Props) {
               }}
               className="flex items-center gap-3 bg-white text-slate-900 font-semibold px-4 py-3 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] hover:scale-105 transition-all border border-slate-200"
             >
-              <span className="text-sm pr-1">New Invoice</span>
+              <span className="text-sm pe-1">New Invoice</span>
               <div className="bg-blue-100 text-blue-600 p-2 rounded-full">
                 <FileText className="w-4 h-4" />
               </div>
@@ -75,7 +75,7 @@ export function FloatingActionMenu({ setActiveTab, onAddNewCustomer }: Props) {
               }}
               className="flex items-center gap-3 bg-white text-slate-900 font-semibold px-4 py-3 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] hover:scale-105 transition-all border border-slate-200"
             >
-              <span className="text-sm pr-1">New Customer</span>
+              <span className="text-sm pe-1">New Customer</span>
               <div className="bg-emerald-100 text-emerald-600 p-2 rounded-full">
                 <UserPlus className="w-4 h-4" />
               </div>

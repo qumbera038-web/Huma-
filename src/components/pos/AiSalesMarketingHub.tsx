@@ -447,8 +447,8 @@ For support, call or WhatsApp: 0300-5861464`;
     <div className="space-y-6" id="ai-sales-marketing-hub">
       {/* Top Banner: Brand Building & 24/7 Autonomous Agent Status */}
       <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-500/30 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -left-12 -top-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -end-12 -bottom-12 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -start-12 -top-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="space-y-2">
@@ -513,7 +513,7 @@ For support, call or WhatsApp: 0300-5861464`;
           >
             <Truck className="w-4 h-4" />
             24/7 Multi-Branch Orders (آن لائن آرڈرز)
-            <span className="ml-1.5 px-2 py-0.5 rounded-full text-xs bg-slate-900/50 text-indigo-200">
+            <span className="ms-1.5 px-2 py-0.5 rounded-full text-xs bg-slate-900/50 text-indigo-200">
               {orders.length}
             </span>
           </button>
@@ -681,7 +681,7 @@ For support, call or WhatsApp: 0300-5861464`;
                   </div>
                 </div>
 
-                <div className="space-y-2.5 max-h-[600px] overflow-y-auto pr-1">
+                <div className="space-y-2.5 max-h-[600px] overflow-y-auto pe-1">
                   {filteredOrders.length === 0 ? (
                     <div className="text-center py-8 text-slate-400 text-sm">
                       No orders found matching the filter.
@@ -708,7 +708,7 @@ For support, call or WhatsApp: 0300-5861464`;
                                 {ord.customerName}
                               </div>
                             </div>
-                            <div className="text-right">
+                            <div className="text-end">
                               <div className="font-bold text-slate-900 text-sm">
                                 Rs. {ord.totalAmount.toLocaleString()}
                               </div>
@@ -852,13 +852,13 @@ For support, call or WhatsApp: 0300-5861464`;
                     </div>
 
                     <div className="border border-slate-200 rounded-xl overflow-hidden">
-                      <table className="w-full text-left text-xs">
+                      <table className="w-full text-start text-xs">
                         <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
                           <tr>
                             <th className="p-3">Product Name</th>
                             <th className="p-3 text-center">Qty</th>
-                            <th className="p-3 text-right">Price (PKR)</th>
-                            <th className="p-3 text-right">Total</th>
+                            <th className="p-3 text-end">Price (PKR)</th>
+                            <th className="p-3 text-end">Total</th>
                             <th className="p-3 text-center">3-Branch Stock</th>
                           </tr>
                         </thead>
@@ -868,7 +868,7 @@ For support, call or WhatsApp: 0300-5861464`;
                               <td className="p-3 font-semibold text-slate-900">
                                 {item.productName}
                                 {item.brand && (
-                                  <span className="ml-1.5 px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px]">
+                                  <span className="ms-1.5 px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px]">
                                     {item.brand}
                                   </span>
                                 )}
@@ -876,10 +876,10 @@ For support, call or WhatsApp: 0300-5861464`;
                               <td className="p-3 text-center font-bold text-slate-800">
                                 {item.quantity}
                               </td>
-                              <td className="p-3 text-right text-slate-600">
+                              <td className="p-3 text-end text-slate-600">
                                 Rs. {item.unitPrice.toLocaleString()}
                               </td>
-                              <td className="p-3 text-right font-bold text-slate-900">
+                              <td className="p-3 text-end font-bold text-slate-900">
                                 Rs. {item.total.toLocaleString()}
                               </td>
                               <td className="p-3">
@@ -934,7 +934,7 @@ For support, call or WhatsApp: 0300-5861464`;
                       </div>
                     </div>
 
-                    <div className="text-right">
+                    <div className="text-end">
                       <div className="text-xs text-slate-500 font-medium">Grand Net Total</div>
                       <div className="text-2xl font-extrabold text-indigo-700">
                         Rs. {selectedOrder.totalAmount.toLocaleString()}
@@ -1087,7 +1087,7 @@ For support, call or WhatsApp: 0300-5861464`;
                 Saved Brand Campaigns ({campaigns.length})
               </h3>
 
-              <div className="space-y-2.5 max-h-[600px] overflow-y-auto pr-1">
+              <div className="space-y-2.5 max-h-[600px] overflow-y-auto pe-1">
                 {campaigns.map((camp) => {
                   const isSelected = selectedCampaign?.id === camp.id;
                   return (
@@ -1162,11 +1162,11 @@ For support, call or WhatsApp: 0300-5861464`;
                       </button>
                     </div>
 
-                    <h4 className="font-bold text-slate-900 text-base text-right font-serif leading-relaxed">
+                    <h4 className="font-bold text-slate-900 text-base text-end font-serif leading-relaxed">
                       {selectedCampaign.headlineUrdu}
                     </h4>
 
-                    <div className="text-sm text-slate-800 text-right whitespace-pre-line leading-relaxed font-serif">
+                    <div className="text-sm text-slate-800 text-end whitespace-pre-line leading-relaxed font-serif">
                       {selectedCampaign.contentUrdu}
                     </div>
                   </div>
@@ -1319,8 +1319,8 @@ For support, call or WhatsApp: 0300-5861464`;
                   <div
                     className={`max-w-[85%] rounded-2xl p-4 text-sm leading-relaxed ${
                       isUser
-                        ? "bg-indigo-600 text-white rounded-br-xs shadow-md shadow-indigo-600/10"
-                        : "bg-white text-slate-800 rounded-bl-xs border border-slate-200 shadow-xs"
+                        ? "bg-indigo-600 text-white rounded-be-xs shadow-md shadow-indigo-600/10"
+                        : "bg-white text-slate-800 rounded-bs-xs border border-slate-200 shadow-xs"
                     }`}
                   >
                     <div className="whitespace-pre-line">{msg.text}</div>
@@ -1353,7 +1353,7 @@ For support, call or WhatsApp: 0300-5861464`;
                     )}
 
                     <div
-                      className={`text-[10px] mt-1 text-right ${
+                      className={`text-[10px] mt-1 text-end ${
                         isUser ? "text-indigo-200" : "text-slate-400"
                       }`}
                     >

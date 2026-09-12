@@ -220,21 +220,21 @@ export const ReturnItemModal: React.FC<ReturnItemModalProps> = ({
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3 mb-4">
                   <div>
                     <span className="text-xs text-slate-400 font-semibold">Bill Number:</span>
-                    <span className="ml-2 font-mono font-black text-amber-300 text-sm">{selectedInvoice.invoiceNumber}</span>
+                    <span className="ms-2 font-mono font-black text-amber-300 text-sm">{selectedInvoice.invoiceNumber}</span>
                   </div>
                   <div>
                     <span className="text-xs text-slate-400 font-semibold">Customer:</span>
-                    <span className="ml-2 font-bold text-white">{selectedInvoice.customerName}</span>
+                    <span className="ms-2 font-bold text-white">{selectedInvoice.customerName}</span>
                   </div>
                   <div>
                     <span className="text-xs text-slate-400 font-semibold">Date:</span>
-                    <span className="ml-2 text-slate-200 text-xs font-medium">
+                    <span className="ms-2 text-slate-200 text-xs font-medium">
                       {new Date(selectedInvoice.date).toLocaleDateString()}
                     </span>
                   </div>
                   <div>
                     <span className="text-xs text-slate-400 font-semibold">Branch:</span>
-                    <span className="ml-2 text-xs font-black text-amber-300 bg-amber-500/20 px-2.5 py-0.5 rounded-md border border-amber-500/30">
+                    <span className="ms-2 text-xs font-black text-amber-300 bg-amber-500/20 px-2.5 py-0.5 rounded-md border border-amber-500/30">
                       {selectedInvoice.branchName || "Branch 1 (Main HQ)"}
                     </span>
                   </div>
@@ -286,7 +286,7 @@ export const ReturnItemModal: React.FC<ReturnItemModalProps> = ({
 
                     <div>
                       <label className="text-xs text-slate-300 font-bold block mb-1.5">Calculated Refund Amount:</label>
-                      <div className="px-3 py-2 bg-slate-950 border-2 border-amber-500/60 rounded-xl text-right flex items-center justify-between">
+                      <div className="px-3 py-2 bg-slate-950 border-2 border-amber-500/60 rounded-xl text-end flex items-center justify-between">
                         <span className="text-xs text-slate-400 font-bold">Refund Total:</span>
                         <span className="text-lg font-black text-amber-400 font-mono">
                           {settings.currencySymbol} {refundTotal.toLocaleString()}

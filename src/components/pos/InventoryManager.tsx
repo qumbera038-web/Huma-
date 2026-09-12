@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Product, ProductCategory, StoreSettings } from "../../types";
 import { useLanguage } from "../../context/LanguageContext";
 import { exportAllDataBackup, saveStoredProducts } from "../../utils/posStorage";
@@ -7,6 +7,7 @@ import { StockAlertDashboard } from "./StockAlertDashboard";
 import { AiPriceListUploaderModal } from "./AiPriceListUploaderModal";
 import { 
   Plus, 
+  Minus,
   Search, 
   Edit, 
   Trash2, 
@@ -37,17 +38,24 @@ interface InventoryManagerProps {
   products: Product[];
   settings: StoreSettings;
   onUpdateProducts: (products: Product[]) => void;
+  highlightedProductId?: string | null;
+  onClearHighlight?: () => void;
+  initialShowLowStockOnly?: boolean;
 }
 
 export const InventoryManager: React.FC<InventoryManagerProps> = ({
   products,
   settings,
   onUpdateProducts,
+  highlightedProductId,
+  onClearHighlight,
+  initialShowLowStockOnly = false,
 }) => {
   const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [selectedBrand, setSelectedBrand] = useState<string>("All");
+  const [showLowStockOnly, setShowLowStockOnly] = useState<boolean>(initialShowLowStockOnly);
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [showStockAlertDashboard, setShowStockAlertDashboard] = useState(false);
@@ -88,6 +96,37 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
   // AI Multimodal Price List Uploader State
   const [showAiUploaderModal, setShowAiUploaderModal] = useState(false);
   const [aiImportSuccessMsg, setAiImportSuccessMsg] = useState("");
+
+  // Inline Price Editing & Validation State
+  const [editingCell, setEditingCell] = useState<{ productId: string; field: 'costPrice' | 'salePrice'; value: string } | null>(null);
+  const [inlinePriceError, setInlinePriceError] = useState<string | null>(null);
+
+  const handleStartInlineEdit = (productId: string, field: 'costPrice' | 'salePrice', currentVal: number) => {
+    setEditingCell({ productId, field, value: currentVal.toString() });
+    setInlinePriceError(null);
+  };
+
+  const handleSaveInlineEdit = (productId: string, field: 'costPrice' | 'salePrice') => {
+    if (!editingCell || editingCell.productId !== productId || editingCell.field !== field) return;
+    const num = Number(editingCell.value);
+    if (isNaN(num) || num < 0) {
+      setInlinePriceError("Price must be a valid positive number (>= 0)");
+      setTimeout(() => setInlinePriceError(null), 3000);
+      return;
+    }
+
+    const updated = products.map((p) => {
+      if (p.id === productId) {
+        return { ...p, [field]: num };
+      }
+      return p;
+    });
+
+    onUpdateProducts(updated);
+    saveStoredProducts(updated);
+    setEditingCell(null);
+    setInlinePriceError(null);
+  };
 
   const handleImportFromAi = (newProducts: Product[]) => {
     const updated = [...newProducts, ...products];
@@ -166,26 +205,77 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
     return () => window.removeEventListener('OPEN_SCANNER', handleOpenScanner);
   }, []);
 
+  // Sync initialShowLowStockOnly prop changes
+  useEffect(() => {
+    if (initialShowLowStockOnly) {
+      setShowLowStockOnly(true);
+    }
+  }, [initialShowLowStockOnly]);
+
+  // Smooth scroll and focus on highlighted item when requested (e.g. from in-app toast)
+  useEffect(() => {
+    if (highlightedProductId) {
+      const timer = setTimeout(() => {
+        const rowEl = document.getElementById(`product-row-${highlightedProductId}`);
+        if (rowEl) {
+          rowEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightedProductId, showLowStockOnly]);
+
   const safeProducts = useMemo(() => Array.isArray(products) ? products : [], [products]);
+
+  const defaultThreshold = settings.lowStockThreshold ?? 5;
+
+  const lowStockCount = useMemo(() => {
+    return safeProducts.filter((p) => {
+      const threshold = p.minStockAlert ?? defaultThreshold;
+      return (p.stockQuantity ?? 0) <= threshold;
+    }).length;
+  }, [safeProducts, defaultThreshold]);
 
   const filteredProducts = useMemo(() => {
     return safeProducts.filter((p) => {
+      const threshold = p.minStockAlert ?? defaultThreshold;
+      const isLowStock = (p.stockQuantity ?? 0) <= threshold;
+
+      // Filter to show only items that fell below alert threshold
+      if (showLowStockOnly && !isLowStock && p.id !== highlightedProductId) {
+        return false;
+      }
+
       const matchCat = selectedCategory === "All" || p.category === selectedCategory;
-      const matchBrand = selectedBrand === "All" || p.brand === selectedBrand;
+      const matchBrand = selectedBrand === "All" || (p.brand || "") === selectedBrand;
       const term = searchTerm.toLowerCase().trim();
       const matchSearch =
         !term ||
-        p.name.toLowerCase().includes(term) ||
-        p.code.toLowerCase().includes(term) ||
-        p.brand.toLowerCase().includes(term) ||
+        (p.name && p.name.toLowerCase().includes(term)) ||
+        (p.code && p.code.toLowerCase().includes(term)) ||
+        (p.brand && p.brand.toLowerCase().includes(term)) ||
         (p.size && p.size.toLowerCase().includes(term)) ||
         (p.color && p.color.toLowerCase().includes(term)) ||
         (p.barcode && p.barcode.includes(term)) ||
-        p.costPrice.toString().includes(term) ||
-        p.salePrice.toString().includes(term);
+        String(p.costPrice ?? "").includes(term) ||
+        String(p.salePrice ?? p.price ?? "").includes(term);
       return matchCat && matchBrand && matchSearch;
     });
-  }, [safeProducts, selectedCategory, selectedBrand, searchTerm]);
+  }, [safeProducts, selectedCategory, selectedBrand, searchTerm, showLowStockOnly, defaultThreshold, highlightedProductId]);
+
+  // Quick Restock handler directly from inventory table
+  const handleQuickAddStock = (productId: string, addQty: number) => {
+    const updated = safeProducts.map((p) => {
+      if (p.id === productId) {
+        return {
+          ...p,
+          stockQuantity: Math.max(0, (p.stockQuantity || 0) + addQty),
+        };
+      }
+      return p;
+    });
+    onUpdateProducts(updated);
+  };
 
   // Inventory Valuations
   const totalValuation = useMemo(() => {
@@ -194,10 +284,6 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
 
   const totalRetailValuation = useMemo(() => {
     return safeProducts.reduce((sum, p) => sum + (p.salePrice || 0) * (p.stockQuantity || 0), 0);
-  }, [safeProducts]);
-
-  const lowStockCount = useMemo(() => {
-    return safeProducts.filter((p) => p.stockQuantity <= p.minStockAlert).length;
   }, [safeProducts]);
 
   const handleOpenAdd = () => {
@@ -212,7 +298,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
     setCostPrice(1000);
     setSalePrice(1400);
     setStockQuantity(10);
-    setMinStockAlert(3);
+    setMinStockAlert(settings.lowStockThreshold ?? 5);
     setBarcode("");
     setImageUrl("");
     setProductDescription("");
@@ -238,6 +324,13 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
     setIsNewModalOpen(true);
   };
 
+  const handleGenerateSku = () => {
+    const catCode = (category || "GEN").replace(/[^a-zA-Z]/g, "").substring(0, 3).toUpperCase();
+    const brandCode = (brand || "HS").replace(/[^a-zA-Z]/g, "").substring(0, 3).toUpperCase();
+    const randNum = Math.floor(100 + Math.random() * 900);
+    setCode(`${brandCode}-${catCode}-${randNum}`);
+  };
+
   const applyPercentToCurrentSalePrice = (pct: number) => {
     const multiplier = 1 + pct / 100;
     setSalePrice(Math.round(costPrice > 0 ? costPrice * multiplier : salePrice * multiplier));
@@ -246,6 +339,13 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
   const handleSaveProduct = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+
+    const parsedCost = Number(costPrice);
+    const parsedSale = Number(salePrice);
+    if (isNaN(parsedCost) || parsedCost < 0 || isNaN(parsedSale) || parsedSale < 0) {
+      alert("⚠️ Error: Cost price and sale price must be valid positive numbers (>= 0).");
+      return;
+    }
 
     if (editingProduct) {
       const updated = products.map((p) =>
@@ -304,7 +404,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
   // Bulk Price Adjuster Preview & Execution
   const bulkAffectedProducts = useMemo(() => {
     return products.filter((p) => {
-      const matchBrand = bulkBrand === "All" || p.brand.toLowerCase() === bulkBrand.toLowerCase();
+      const matchBrand = bulkBrand === "All" || (p.brand || "").toLowerCase() === bulkBrand.toLowerCase();
       const matchCat = bulkCategory === "All" || p.category === bulkCategory;
       return matchBrand && matchCat;
     });
@@ -314,20 +414,20 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
     if (bulkAffectedProducts.length === 0) return;
 
     const updated = products.map((p) => {
-      const matchBrand = bulkBrand === "All" || p.brand.toLowerCase() === bulkBrand.toLowerCase();
+      const matchBrand = bulkBrand === "All" || (p.brand || "").toLowerCase() === bulkBrand.toLowerCase();
       const matchCat = bulkCategory === "All" || p.category === bulkCategory;
       if (!matchBrand || !matchCat) return p;
 
-      let newSale = p.salePrice;
-      let newCost = p.costPrice;
+      let newSale = p.salePrice ?? p.price ?? 0;
+      let newCost = p.costPrice ?? (p.price ? Math.round(p.price * 0.75) : 0);
 
       if (bulkMode === "percent") {
         const factor = 1 + bulkPercent / 100;
         if (bulkTarget === "salePrice" || bulkTarget === "both") {
-          newSale = Math.round(p.salePrice * factor);
+          newSale = Math.round((p.salePrice ?? p.price ?? 0) * factor);
         }
         if (bulkTarget === "costPrice" || bulkTarget === "both") {
-          newCost = Math.round(p.costPrice * factor);
+          newCost = Math.round((p.costPrice ?? (p.price ? Math.round(p.price * 0.75) : 0)) * factor);
         }
       } else {
         if (bulkTarget === "salePrice" || bulkTarget === "both") {
@@ -342,6 +442,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
         ...p,
         salePrice: newSale,
         costPrice: newCost,
+        price: newSale,
       };
     });
 
@@ -475,17 +576,17 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
           <div className="p-4 border-b border-slate-800 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-slate-950/40">
             <div className="flex flex-1 items-center flex-wrap gap-2">
               <div className="relative flex-1 min-w-[200px] max-w-md">
-                <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+                <Search className="w-4 h-4 absolute start-3 top-2.5 text-slate-400" />
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder={t('search_inventory')}
-                  className="w-full pl-9 pr-10 py-2 bg-glass border border-slate-700/80 rounded-xl text-xs text-slate-100 placeholder-slate-500 outline-none focus:border-blue-500"
+                  className="w-full ps-9 pe-10 py-2 bg-glass border border-slate-700/80 rounded-xl text-xs text-slate-100 placeholder-slate-500 outline-none focus:border-blue-500"
                 />
                 <button
                   onClick={() => setShowScannerModal(true)}
-                  className="absolute right-2 top-1.5 text-slate-400 hover:text-blue-400 transition bg-slate-800 p-1 rounded border border-slate-700"
+                  className="absolute end-2 top-1.5 text-slate-400 hover:text-blue-400 transition bg-slate-800 p-1 rounded border border-slate-700"
                   title="Scan Barcode"
                 >
                   <ScanLine className="w-3.5 h-3.5" />
@@ -520,6 +621,23 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
             </div>
 
             <div className="flex items-center flex-wrap gap-2">
+              {/* Highlight & Filter Only Low Stock Items Toggle Button */}
+              <button
+                type="button"
+                onClick={() => setShowLowStockOnly(!showLowStockOnly)}
+                className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl transition cursor-pointer ${
+                  showLowStockOnly
+                    ? "bg-rose-600 text-white shadow-lg shadow-rose-600/40 ring-2 ring-rose-400"
+                    : lowStockCount > 0
+                    ? "bg-rose-950/40 hover:bg-rose-900/50 text-rose-300 border border-rose-500/50 shadow-sm"
+                    : "bg-white/5 hover:bg-white/10 text-slate-400 border border-slate-700"
+                }`}
+                title="Toggle table filter to isolate low stock items"
+              >
+                <AlertTriangle className={`w-4 h-4 shrink-0 ${lowStockCount > 0 ? "text-rose-400 animate-pulse" : ""}`} />
+                <span>{showLowStockOnly ? "تمام آئٹمز دکھائیں (Show All)" : `کم اسٹاک فلٹر (${lowStockCount})`}</span>
+              </button>
+
               {/* Dedicated Restock Alerts Button */}
               <button
                 type="button"
@@ -579,12 +697,12 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                 </button>
 
                 {showExportDropdown && (
-                  <div className="absolute right-0 top-11 w-64 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-2 z-50 flex flex-col gap-1.5 animate-in fade-in zoom-in-95">
+                  <div className="absolute end-0 top-11 w-64 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-2 z-50 flex flex-col gap-1.5 animate-in fade-in zoom-in-95">
                     <a
                       href="/haider_sanitary_pos.apk"
                       download="haider_sanitary_pos.apk"
                       onClick={() => setShowExportDropdown(false)}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-950 bg-amber-500 hover:bg-amber-400 transition"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-start text-xs font-bold text-slate-950 bg-amber-500 hover:bg-amber-400 transition"
                     >
                       <Smartphone className="w-3.5 h-3.5 shrink-0 text-slate-950" />
                       <div>
@@ -597,7 +715,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                       href="/haider_sanitary_pos_single_file.html"
                       download="haider_sanitary_pos_single_file.html"
                       onClick={() => setShowExportDropdown(false)}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-start text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition"
                     >
                       <Download className="w-3.5 h-3.5 shrink-0 text-white" />
                       <div>
@@ -612,7 +730,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                         setShowExportDropdown(false);
                         exportCSV();
                       }}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs font-semibold text-slate-300 hover:bg-slate-800 transition border-t border-slate-800 mt-1 pt-2"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-start text-xs font-semibold text-slate-300 hover:bg-slate-800 transition border-t border-slate-800 mt-1 pt-2"
                     >
                       <FileSpreadsheet className="w-3.5 h-3.5 shrink-0 text-blue-400" />
                       <span>Export Stock Sheet (CSV / Excel)</span>
@@ -624,7 +742,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                         setShowExportDropdown(false);
                         exportAllDataBackup();
                       }}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs font-semibold text-purple-300 hover:bg-purple-900/20 transition"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-start text-xs font-semibold text-purple-300 hover:bg-purple-900/20 transition"
                     >
                       <Database className="w-3.5 h-3.5 shrink-0 text-purple-400" />
                       <span>Backup All Store Data (JSON)</span>
@@ -672,7 +790,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
 
         {/* Products Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="w-full text-start text-xs border-collapse">
             <thead>
               <tr className="border-b border-slate-800 text-slate-400 bg-slate-950/60">
                 <th className="py-3 px-4 font-semibold w-12">Sr #</th>
@@ -681,24 +799,43 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                 <th className="py-3 px-4 font-semibold">{t('item_name')}</th>
                 <th className="py-3 px-4 font-semibold">Brand / Company</th>
                 <th className="py-3 px-4 font-semibold">{t('category')}</th>
-                <th className="py-3 px-4 font-semibold text-right">{t('purchase_price')}</th>
-                <th className="py-3 px-4 font-semibold text-right">{t('sale_price')}</th>
+                <th className="py-3 px-4 font-semibold text-end">{t('purchase_price')}</th>
+                <th className="py-3 px-4 font-semibold text-end">{t('sale_price')}</th>
                 <th className="py-3 px-4 font-semibold text-center">{t('stock')} Level</th>
-                <th className="py-3 px-4 font-semibold text-right">{t('actions')}</th>
+                <th className="py-3 px-4 font-semibold text-end">{t('actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
               {filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-slate-500">
-                    No products found matching the criteria.
+                  <td colSpan={10} className="py-12 text-center text-slate-500">
+                    {showLowStockOnly 
+                      ? "کوئی پروڈکٹ الرٹ کی حد سے نیچے نہیں ہے (No low stock items found)." 
+                      : "No products found matching the criteria."}
                   </td>
                 </tr>
               ) : (
                 filteredProducts.map((p, index) => {
-                  const isLow = p.stockQuantity <= p.minStockAlert;
+                  const threshold = p.minStockAlert ?? defaultThreshold;
+                  const currentQty = p.stockQuantity ?? 0;
+                  const isOutOfStock = currentQty <= 0;
+                  const isLowStock = currentQty <= threshold;
+                  const isTargetHighlighted = highlightedProductId === p.id;
+
                   return (
-                    <tr key={p.id} className="hover:bg-white/5/40 transition">
+                    <tr 
+                      key={p.id} 
+                      id={`product-row-${p.id}`}
+                      className={`transition-all duration-300 ${
+                        isTargetHighlighted
+                          ? "bg-rose-950/80 border-2 border-rose-500 shadow-2xl shadow-rose-950/80 ring-2 ring-rose-400"
+                          : isOutOfStock
+                          ? "bg-red-950/35 border-s-4 border-s-red-500 hover:bg-red-950/45"
+                          : isLowStock
+                          ? "bg-rose-950/25 border-s-4 border-s-rose-500/90 hover:bg-rose-950/35"
+                          : "hover:bg-white/5/40"
+                      }`}
+                    >
                       <td className="py-3 px-4 font-bold text-slate-500 text-[10px]">
                         {index + 1}
                       </td>
@@ -715,12 +852,24 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                         {p.code}
                       </td>
                       <td className="py-3 px-4">
-                        <span className="font-semibold text-slate-100 block text-xs">{p.name}</span>
-                        {(p.size || p.color) && (
-                          <span className="text-[10px] text-slate-400">
-                            {p.size ? `Size: ${p.size}` : ""} {p.color ? `Color: ${p.color}` : ""}
-                          </span>
-                        )}
+                        <div className="flex flex-col items-start gap-1">
+                          <span className="font-semibold text-slate-100 block text-xs">{p.name}</span>
+                          {(p.size || p.color) && (
+                            <span className="text-[10px] text-slate-400">
+                              {p.size ? `Size: ${p.size}` : ""} {p.color ? `Color: ${p.color}` : ""}
+                            </span>
+                          )}
+                          {isOutOfStock ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 mt-0.5 rounded text-[10px] font-black bg-red-600/30 text-red-300 border border-red-500/50 animate-pulse">
+                              ⛔ آؤٹ آف اسٹاک (Out of Stock)
+                            </span>
+                          ) : isLowStock ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 mt-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse">
+                              <AlertTriangle className="w-3 h-3 text-rose-400 shrink-0" />
+                              <span>کم اسٹاک الرٹ: صرف {currentQty} باقی (حد: &le;{threshold})</span>
+                            </span>
+                          ) : null}
+                        </div>
                       </td>
                       <td className="py-3 px-4">
                         <span className="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-white/5 text-amber-300">
@@ -728,25 +877,153 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                         </span>
                       </td>
                       <td className="py-3 px-4 text-slate-300">{p.category}</td>
-                      <td className="py-3 px-4 text-right font-mono text-slate-400">
-                        {settings.currencySymbol} {p.costPrice.toLocaleString()}
+                      <td className="py-3 px-4 text-end font-mono text-slate-400">
+                        {editingCell?.productId === p.id && editingCell?.field === 'costPrice' ? (
+                          <div className="flex flex-col items-end gap-1">
+                            <input
+                              type="number"
+                              min="0"
+                              autoFocus
+                              value={editingCell.value}
+                              onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
+                              onBlur={() => handleSaveInlineEdit(p.id, 'costPrice')}
+                              onKeyDown={(e) => { if (e.key === 'Enter') handleSaveInlineEdit(p.id, 'costPrice'); }}
+                              className="w-24 px-2 py-1 bg-slate-950 border border-blue-500 rounded text-end text-xs font-mono text-white outline-none"
+                            />
+                            {inlinePriceError && <span className="text-[9px] text-rose-400">{inlinePriceError}</span>}
+                          </div>
+                        ) : (
+                          <div
+                            onClick={() => handleStartInlineEdit(p.id, 'costPrice', p.costPrice ?? (p.price ? Math.round(p.price * 0.75) : 0))}
+                            className="cursor-pointer hover:bg-white/5 px-2 py-1 rounded transition group relative inline-block"
+                            title="Click to edit purchase cost price"
+                          >
+                            <span>{settings.currencySymbol} {(p.costPrice ?? (p.price ? Math.round(p.price * 0.75) : 0)).toLocaleString()}</span>
+                            <span className="absolute -top-6 start-1/2 -translate-x-1/2 bg-slate-800 text-slate-200 text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap">Edit Cost</span>
+                          </div>
+                        )}
                       </td>
-                      <td className="py-3 px-4 text-right font-mono font-bold text-emerald-400">
-                        {settings.currencySymbol} {p.salePrice.toLocaleString()}
+                      <td className="py-3 px-4 text-end font-mono font-bold text-emerald-400">
+                        <div className="flex flex-col items-end gap-1">
+                          {editingCell?.productId === p.id && editingCell?.field === 'salePrice' ? (
+                            <div className="flex flex-col items-end gap-1">
+                              <input
+                                type="number"
+                                min="0"
+                                autoFocus
+                                value={editingCell.value}
+                                onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
+                                onBlur={() => handleSaveInlineEdit(p.id, 'salePrice')}
+                                onKeyDown={(e) => { if (e.key === 'Enter') handleSaveInlineEdit(p.id, 'salePrice'); }}
+                                className="w-24 px-2 py-1 bg-slate-950 border border-emerald-500 rounded text-end text-xs font-mono text-white outline-none"
+                              />
+                              {inlinePriceError && <span className="text-[9px] text-rose-400">{inlinePriceError}</span>}
+                            </div>
+                          ) : (
+                            <div
+                              onClick={() => handleStartInlineEdit(p.id, 'salePrice', p.salePrice ?? p.price ?? 0)}
+                              className="cursor-pointer hover:bg-white/5 px-2 py-1 rounded transition group relative inline-flex items-center gap-1.5 justify-end"
+                              title="Click to edit retail sale price"
+                            >
+                              <span>{settings.currencySymbol} {(p.salePrice ?? p.price ?? 0).toLocaleString()}</span>
+                              <span className="absolute -top-6 start-1/2 -translate-x-1/2 bg-slate-800 text-slate-200 text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap">Edit Sale</span>
+                            </div>
+                          )}
+
+                          {/* Visual Percentage Deviation / Margin Badge */}
+                          {(() => {
+                            const cPrice = p.costPrice ?? (p.price ? Math.round(p.price * 0.75) : 0);
+                            const sPrice = p.salePrice ?? p.price ?? 0;
+                            const marginPct = sPrice > 0 ? Math.round(((sPrice - cPrice) / sPrice) * 100) : 0;
+                            if (sPrice < cPrice) {
+                              return (
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-rose-500/20 text-rose-400 border border-rose-500/40 animate-pulse">
+                                  🚨 Loss (Rs. {cPrice - sPrice})
+                                </span>
+                              );
+                            } else if (marginPct < 10) {
+                              return (
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                                  ⚠️ Thin ({marginPct}%)
+                                </span>
+                              );
+                            } else if (marginPct > 40) {
+                              return (
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                                  ⭐ Premium ({marginPct}%)
+                                </span>
+                              );
+                            } else {
+                              return (
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/20">
+                                  🟢 {marginPct}% Margin
+                                </span>
+                              );
+                            }
+                          })()}
+                        </div>
                       </td>
                       <td className="py-3 px-4 text-center">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold font-mono ${
-                            isLow
-                              ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
-                              : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                          }`}
-                        >
-                          {p.stockQuantity} {p.unit}s
-                        </span>
+                        <div className="flex flex-col items-center justify-center gap-1">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold shadow-sm ${
+                              isOutOfStock
+                                ? "bg-red-600 text-white font-black animate-pulse shadow-md shadow-red-600/30"
+                                : isLowStock
+                                ? "bg-rose-600/25 text-rose-300 border border-rose-500/50 font-black animate-pulse shadow-sm shadow-rose-950/50"
+                                : currentQty <= threshold * 1.5
+                                ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                                : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                            }`}
+                          >
+                            {isLowStock && <AlertTriangle className="w-3 h-3 text-rose-400 shrink-0" />}
+                            {currentQty} {p.unit}s
+                          </span>
+                          <span className={`text-[10px] font-mono ${isLowStock ? "text-rose-400 font-bold" : "text-slate-400"}`}>
+                            الرٹ حد: &le;{threshold}
+                          </span>
+                        </div>
                       </td>
-                      <td className="py-3 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
+                      <td className="py-3 px-4 text-end">
+                        <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                          {isLowStock && (
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleQuickAddStock(p.id, -5)}
+                                className="px-1.5 py-0.5 bg-rose-600/10 hover:bg-rose-600 text-rose-400 hover:text-white rounded text-[9px] font-black border border-rose-500/20 transition cursor-pointer"
+                                title="Quick Deduct -5 items (اسٹاک کم کریں -5)"
+                              >
+                                <span>-5</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleQuickAddStock(p.id, -1)}
+                                className="px-1.5 py-0.5 bg-rose-600/25 hover:bg-rose-600 text-rose-300 hover:text-white rounded text-[9px] font-black border border-rose-500/40 transition flex items-center justify-center gap-0.5 cursor-pointer"
+                                title="Quick Deduct -1 item (اسٹاک کم کریں -1)"
+                              >
+                                <Minus className="w-2.5 h-2.5" />
+                                <span>-1</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleQuickAddStock(p.id, 1)}
+                                className="px-1.5 py-0.5 bg-emerald-600/25 hover:bg-emerald-600 text-emerald-300 hover:text-white rounded text-[9px] font-black border border-emerald-500/40 transition flex items-center justify-center gap-0.5 cursor-pointer"
+                                title="Quick Restock +1 item (اسٹاک بڑھائیں +1)"
+                              >
+                                <Plus className="w-2.5 h-2.5" />
+                                <span>+1</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleQuickAddStock(p.id, 5)}
+                                className="px-1.5 py-0.5 bg-emerald-600/10 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded text-[9px] font-black border border-emerald-500/20 transition cursor-pointer"
+                                title="Quick Restock +5 items (اسٹاک بڑھائیں +5)"
+                              >
+                                <span>+5</span>
+                              </button>
+                            </div>
+                          )}
                           <button
                             onClick={() => handleOpenEdit(p)}
                             className="p-1.5 rounded-lg text-slate-400 hover:text-blue-400 hover:bg-white/5 transition"
@@ -982,7 +1259,18 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                 <div className="sm:col-span-3 space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="text-slate-300 font-medium block mb-1">Item Code *</label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-slate-300 font-medium block">Item Code *</label>
+                        <button
+                          type="button"
+                          onClick={handleGenerateSku}
+                          className="text-[10px] text-sky-400 hover:text-sky-300 bg-sky-950/40 hover:bg-sky-900/60 px-2 py-0.5 rounded border border-sky-800 flex items-center gap-1 transition"
+                          title="Generate smart SKU based on category & brand"
+                        >
+                          <Sparkles className="w-3 h-3 text-sky-400" />
+                          <span>Auto-SKU</span>
+                        </button>
+                      </div>
                       <input
                         type="text"
                         required
@@ -1019,84 +1307,104 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                 </div>
               </div>
 
-              <div>
-                <label className="text-slate-300 font-medium block mb-1">تفصیلی تفصیل (Product Notes / Specs)</label>
-                <textarea
-                  value={productDescription}
-                  onChange={(e) => setProductDescription(e.target.value)}
-                  placeholder="آئٹم کی تفصیل، وارنٹی، یا اسپیسیفیکیشن یہاں لکھیں..."
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 outline-none focus:border-blue-500 min-h-[60px]"
-                />
-              </div>
+              <details className="group border border-slate-800 rounded-lg bg-slate-950/40 p-2">
+                <summary className="text-xs font-semibold text-slate-300 cursor-pointer outline-none select-none flex items-center justify-between">
+                  <span>Advanced Settings / Other Details (Size, Color, Unit, Barcode)</span>
+                  <span className="text-slate-500 group-open:rotate-180 transition-transform">▼</span>
+                </summary>
+                <div className="pt-3 space-y-3">
+                  <div>
+                    <label className="text-slate-300 font-medium block mb-1">تفصیلی تفصیل (Product Notes / Specs)</label>
+                    <textarea
+                      value={productDescription}
+                      onChange={(e) => setProductDescription(e.target.value)}
+                      placeholder="آئٹم کی تفصیل، وارنٹی، یا اسپیسیفیکیشن یہاں لکھیں..."
+                      className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 outline-none focus:border-blue-500 min-h-[60px]"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-slate-300 font-medium block mb-1">Category</label>
+                      <select
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value as ProductCategory)}
+                        className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 outline-none"
+                      >
+                        {categories.map((c) => (
+                          <option key={c} value={c}>
+                            {c}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-slate-300 font-medium block mb-1">Size / Dimension</label>
+                      <input
+                        type="text"
+                        value={size}
+                        onChange={(e) => setSize(e.target.value)}
+                        placeholder="e.g. Standard, 25mm, 4 inch"
+                        className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-slate-300 font-medium block mb-1">Color (Optional)</label>
+                      <input
+                        type="text"
+                        value={color}
+                        onChange={(e) => setColor(e.target.value)}
+                        placeholder="e.g. Chrome, White, Ivory"
+                        className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-slate-300 font-medium block mb-1">Barcode (Optional)</label>
+                      <input
+                        type="text"
+                        value={barcode}
+                        onChange={(e) => setBarcode(e.target.value)}
+                        placeholder="Scan or type barcode"
+                        className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 font-mono outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-slate-300 font-medium block mb-1">Unit Type</label>
+                      <select
+                        value={unit}
+                        onChange={(e) => setUnit(e.target.value as Product["unit"])}
+                        className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 outline-none"
+                      >
+                        <option value="piece">Piece (Pcs)</option>
+                        <option value="set">Set</option>
+                        <option value="length">Length (Pipe)</option>
+                        <option value="foot">Foot (Ft)</option>
+                        <option value="box">Box</option>
+                        <option value="bundle">Bundle</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-slate-300 font-medium block mb-1">Min Stock Alert</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={minStockAlert}
+                        onChange={(e) => setMinStockAlert(Number(e.target.value))}
+                        className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-amber-400 font-bold font-mono outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </details>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-slate-300 font-medium block mb-1">Category</label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value as ProductCategory)}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 outline-none"
-                  >
-                    {categories.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-slate-300 font-medium block mb-1">Size / Dimension</label>
-                  <input
-                    type="text"
-                    value={size}
-                    onChange={(e) => setSize(e.target.value)}
-                    placeholder="e.g. Standard, 25mm, 4 inch"
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-slate-300 font-medium block mb-1">Color (Optional)</label>
-                  <input
-                    type="text"
-                    value={color}
-                    onChange={(e) => setColor(e.target.value)}
-                    placeholder="e.g. Chrome, White, Ivory"
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="text-slate-300 font-medium block mb-1">Barcode (Optional)</label>
-                  <input
-                    type="text"
-                    value={barcode}
-                    onChange={(e) => setBarcode(e.target.value)}
-                    placeholder="Scan or type barcode"
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 font-mono outline-none focus:border-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="text-slate-300 font-medium block mb-1">Unit Type</label>
-                  <select
-                    value={unit}
-                    onChange={(e) => setUnit(e.target.value as Product["unit"])}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 outline-none"
-                  >
-                    <option value="piece">Piece (Pcs)</option>
-                    <option value="set">Set</option>
-                    <option value="length">Length (Pipe)</option>
-                    <option value="foot">Foot (Ft)</option>
-                    <option value="box">Box</option>
-                    <option value="bundle">Bundle</option>
-                  </select>
-                </div>
-
                 <div>
                   <label className="text-slate-300 font-medium block mb-1">Purchase Cost</label>
                   <input
@@ -1121,10 +1429,26 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                 </div>
               </div>
 
-              {/* Quick % Markup tool */}
-              <div className="p-2.5 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between gap-2">
-                <span className="text-[11px] text-slate-400">Quick Markup:</span>
-                <div className="flex items-center gap-1.5">
+              {/* Custom & Quick % Markup tool */}
+              <div className="p-2.5 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between gap-2 flex-wrap">
+                <span className="text-[11px] text-slate-400">Markup %:</span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded">
+                    <input 
+                      type="number" 
+                      value={percentCalcInput} 
+                      onChange={(e) => setPercentCalcInput(Number(e.target.value))} 
+                      className="w-12 bg-transparent outline-none text-[10px] font-bold text-slate-200" 
+                    />
+                    <span className="text-[10px] text-slate-400">%</span>
+                    <button 
+                      type="button" 
+                      onClick={() => applyPercentToCurrentSalePrice(percentCalcInput)}
+                      className="text-[10px] text-emerald-400 font-bold ms-1 hover:text-emerald-300"
+                    >
+                      Apply
+                    </button>
+                  </div>
                   <button
                     type="button"
                     onClick={() => applyPercentToCurrentSalePrice(5)}
@@ -1164,18 +1488,19 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                     min="0"
                     value={stockQuantity}
                     onChange={(e) => setStockQuantity(Number(e.target.value))}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 font-mono outline-none"
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 font-mono outline-none focus:border-blue-500"
                   />
                 </div>
-
                 <div>
-                  <label className="text-slate-300 font-medium block mb-1">Low Stock Alert Minimum</label>
+                  <label className="text-slate-300 font-medium block mb-1">
+                    Min Stock Alert Threshold (الرٹ کی حد)
+                  </label>
                   <input
                     type="number"
                     min="1"
                     value={minStockAlert}
-                    onChange={(e) => setMinStockAlert(Number(e.target.value))}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 font-mono outline-none"
+                    onChange={(e) => setMinStockAlert(Math.max(1, Number(e.target.value)))}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-amber-400 font-bold font-mono outline-none focus:border-amber-500"
                   />
                 </div>
               </div>

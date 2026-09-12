@@ -49,6 +49,35 @@ import { ScannerModal } from "./ScannerModal";
 import { useLanguage } from "../../context/LanguageContext";
 import { downloadPdfReceipt } from "../../utils/pdfReceiptGenerator";
 
+// Helper to get beautiful, high-quality hardware/sanitary fallback images based on keywords
+export const getProductImage = (product: Product): string => {
+  if (product.imageUrl) return product.imageUrl;
+
+  const name = (product.name || "").toLowerCase();
+  const category = (product.category || "").toLowerCase();
+
+  if (name.includes("pprc") || name.includes("pipe") || name.includes("پائپ")) {
+    return "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=200&auto=format&fit=crop&q=80";
+  }
+  if (name.includes("elbow") || name.includes("tee") || name.includes("socket") || name.includes("البو") || name.includes("ٹی") || name.includes("fitting") || name.includes("کوائل") || name.includes("یونین")) {
+    return "https://images.unsplash.com/photo-1617155093730-a8bf47be792d?w=200&auto=format&fit=crop&q=80";
+  }
+  if (name.includes("tap") || name.includes("faucet") || name.includes("mixer") || name.includes("ٹونٹی") || name.includes("مکسر") || name.includes("valve") || name.includes("والو")) {
+    return "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=200&auto=format&fit=crop&q=80";
+  }
+  if (name.includes("shower") || name.includes("شاور")) {
+    return "https://images.unsplash.com/photo-1574634534894-89d7576c8259?w=200&auto=format&fit=crop&q=80";
+  }
+  if (name.includes("commode") || name.includes("seat") || name.includes("vanity") || name.includes("کمبوڈ") || name.includes("بیسن") || name.includes("toilet") || category.includes("sanitary") || name.includes("سینیٹری")) {
+    return "https://images.unsplash.com/photo-1521207418485-99c705420785?w=200&auto=format&fit=crop&q=80";
+  }
+  if (name.includes("tape") || name.includes("teflon") || name.includes("دھاگہ")) {
+    return "https://images.unsplash.com/photo-1589739900243-4b52cd9b104e?w=200&auto=format&fit=crop&q=80";
+  }
+  
+  return "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=200&auto=format&fit=crop&q=80";
+};
+
 interface BillingCounterProps {
   products: Product[];
   customers: Customer[];
@@ -231,18 +260,23 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
   // Filter products
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
-      const matchesCategory = selectedCategory === "All" || p.category === selectedCategory;
+      const isLowStock = p.stockQuantity <= p.minStockAlert;
+      const matchesCategory = 
+        selectedCategory === "All" || 
+        (selectedCategory === "Low Stock" && isLowStock) ||
+        (selectedCategory !== "Low Stock" && p.category === selectedCategory);
+        
       const term = searchTerm.toLowerCase().trim();
       if (!term) return matchesCategory;
 
       const matchesSearch =
-        p.name.toLowerCase().includes(term) ||
-        p.code.toLowerCase().includes(term) ||
-        p.brand.toLowerCase().includes(term) ||
+        (p.name && p.name.toLowerCase().includes(term)) ||
+        (p.code && p.code.toLowerCase().includes(term)) ||
+        (p.brand && p.brand.toLowerCase().includes(term)) ||
         (p.size && p.size.toLowerCase().includes(term)) ||
         (p.color && p.color.toLowerCase().includes(term)) ||
         (p.barcode && p.barcode.includes(term)) ||
-        p.salePrice.toString().includes(term);
+        String(p.salePrice ?? p.price ?? "").includes(term);
 
       return matchesCategory && matchesSearch;
     });
@@ -262,6 +296,7 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
 
   // Cart operations
   const handleAddToCart = (product: Product, forceCartView?: boolean) => {
+    const itemPrice = product.salePrice ?? product.price ?? 0;
     setCart((prev) => {
       const existing = prev.find((item) => item.product.id === product.id);
       if (existing) {
@@ -280,8 +315,8 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
           {
             product,
             quantity: 1,
-            unitPrice: product.salePrice,
-            total: product.salePrice,
+            unitPrice: itemPrice,
+            total: itemPrice,
           },
         ];
       }
@@ -539,7 +574,7 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
     <div className="flex flex-col gap-3 p-3 sm:p-4 max-w-[1600px] mx-auto min-h-[calc(100vh-130px)] relative">
       {/* Action Notification Toast */}
       {actionNotification && (
-        <div className="fixed top-20 right-6 z-50 bg-glass border border-emerald-500/50 text-emerald-300 px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-semibold animate-in slide-in-from-top-3">
+        <div className="fixed top-20 end-6 z-50 bg-glass border border-emerald-500/50 text-emerald-300 px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-semibold animate-in slide-in-from-top-3">
           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           <span>{actionNotification}</span>
         </div>
@@ -570,7 +605,7 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
           <ShoppingCart className="w-4 h-4" />
           <span>موجودہ بل و کارٹ ({cart.length})</span>
           {cart.length > 0 && (
-            <span className="text-[11px] font-mono font-black ml-1 px-1.5 py-0.5 rounded bg-emerald-950/80 text-emerald-300">
+            <span className="text-[11px] font-mono font-black ms-1 px-1.5 py-0.5 rounded bg-emerald-950/80 text-emerald-300">
               Rs. {grandTotal.toLocaleString()}
             </span>
           )}
@@ -640,18 +675,18 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
           {/* Top Controls: Search, New Bill, Cancel Bill, AI Estimator */}
           <div className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-1">
-              <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
+              <Search className="w-4 h-4 absolute start-3.5 top-3 text-slate-400" />
               <input
                 ref={searchInputRef}
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder={t('search_items')}
-                className="w-full pl-10 pr-12 py-2.5 bg-glass border border-slate-700/80 rounded-xl text-slate-100 placeholder-slate-500 text-sm focus:border-blue-500 outline-none shadow-sm"
+                className="w-full ps-10 pe-12 py-2.5 bg-glass border border-slate-700/80 rounded-xl text-slate-100 placeholder-slate-500 text-sm focus:border-blue-500 outline-none shadow-sm"
               />
               <button
                 onClick={() => setShowScannerModal(true)}
-                className="absolute right-3.5 top-2 text-slate-400 hover:text-blue-400 transition bg-slate-800 p-1 rounded-md border border-slate-700"
+                className="absolute end-3.5 top-2 text-slate-400 hover:text-blue-400 transition bg-slate-800 p-1 rounded-md border border-slate-700"
                 title="Scan Barcode or Search"
               >
                 <ScanLine className="w-4 h-4" />
@@ -677,7 +712,7 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
                 disabled={cart.length === 0 && discountValue === 0 && !selectedCustomerId && !notes}
                 className={`flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition border shadow-sm ${
                   cart.length > 0 || discountValue > 0 || selectedCustomerId || notes
-                    ? "bg-rose-500/20 hover:bg-rose-500/30 border-rose-500/40 text-rose-300 cursor-pointer"
+                    ? "bg-rose-500/20 hover:bg-rose-500/30 border-eose-500/40 text-rose-300 cursor-pointer"
                     : "bg-glass border-slate-800 text-slate-500 cursor-not-allowed opacity-60"
                 }`}
               >
@@ -708,19 +743,49 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
           {/* Category Pills & Product Hide/Show Bar & Auto-Open Toggle */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none flex-1">
-              {categories.map((cat) => (
+              {/* Special Low Stock Filter Tab (Always highlighted if there are low stock items) */}
+              {lowStockItems.length > 0 && (
                 <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition ${
-                    selectedCategory === cat
-                      ? "bg-blue-600 text-white shadow-sm"
-                      : "bg-glass hover:bg-white/5 text-slate-400 hover:text-slate-200 border border-slate-800"
+                  onClick={() => setSelectedCategory("Low Stock")}
+                  className={`px-2.5 py-1 rounded-md text-[11px] font-black whitespace-nowrap transition flex items-center gap-1 ring-1 ${
+                    selectedCategory === "Low Stock"
+                      ? "bg-rose-600 text-white shadow-md shadow-rose-600/30 border border-eose-500 ring-rose-400 animate-pulse"
+                      : "bg-rose-950/40 text-rose-300 hover:text-rose-200 border border-eose-800/60 ring-rose-900/30"
                   }`}
                 >
-                  {cat}
+                  <AlertTriangle className="w-3 h-3 text-rose-400 animate-bounce" />
+                  <span>کم اسٹاک ({lowStockItems.length})</span>
                 </button>
-              ))}
+              )}
+
+              {categories.map((cat) => {
+                const categoryLowStockCount = products.filter(
+                  (p) => p.category === cat && p.stockQuantity <= p.minStockAlert
+                ).length;
+
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap transition flex items-center gap-1 ${
+                      selectedCategory === cat
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "bg-glass hover:bg-white/5 text-slate-400 hover:text-slate-200 border border-slate-800"
+                    }`}
+                  >
+                    <span>{cat}</span>
+                    {categoryLowStockCount > 0 && cat !== "All" && (
+                      <span 
+                        className="inline-flex items-center gap-0.5 px-1 py-0.2 text-[8px] font-bold bg-rose-500/20 text-rose-300 rounded-full border border-eose-500/30 shrink-0"
+                        title={`${categoryLowStockCount} items are low stock!`}
+                      >
+                        <span className="w-1 h-1 rounded-full bg-rose-500 animate-pulse shrink-0" />
+                        <span>{categoryLowStockCount}</span>
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
             <div className="flex items-center gap-1.5 shrink-0">
@@ -764,7 +829,7 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
 
           {/* Product Catalog Cards OR Collapsed State */}
           {!showProductCatalog ? (
-            <div className="p-4 bg-glass/80 border border-slate-800 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left shadow-inner">
+            <div className="p-4 bg-glass/80 border border-slate-800 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-start shadow-inner">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-white/5 border border-slate-700 flex items-center justify-center text-slate-400 shrink-0">
                   <EyeOff className="w-5 h-5 text-amber-400" />
@@ -805,35 +870,47 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
                       <div
                         key={product.id}
                         onClick={() => handleAddToCart(product)}
-                        className={`group relative p-3 rounded-xl border text-left cursor-pointer transition-all duration-150 flex flex-col justify-between ${
+                        className={`group relative p-3 rounded-xl border text-start cursor-pointer transition-all duration-150 flex flex-col justify-between ${
                           inCart
                             ? "bg-blue-950/40 border-blue-500/50 shadow-md ring-1 ring-blue-500/30"
                             : "bg-glass/90 hover:bg-white/5/90 border-slate-800 hover:border-slate-700 shadow-sm"
                         }`}
                       >
-                        <div>
-                          <div className="flex items-start justify-between gap-1 mb-1">
-                            <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-white/5 text-slate-400 font-semibold">
-                              {product.code}
-                            </span>
-                            <span
-                              className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
-                                isLowStock
-                                  ? "bg-rose-500/20 text-rose-300 border border-rose-500/30"
-                                  : "bg-white/5 text-slate-400"
-                              }`}
-                            >
-                              Stock: {product.stockQuantity} {product.unit}
-                            </span>
+                        <div className="flex gap-2.5 items-start">
+                          {/* Hardware Item Picture Thumbnail */}
+                          <div className="w-12 h-12 rounded-lg bg-slate-950 overflow-hidden shrink-0 border border-slate-800/80 relative shadow-inner">
+                            <img
+                              src={getProductImage(product)}
+                              alt={product.name}
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            />
                           </div>
 
-                          <h4 className="font-semibold text-slate-100 text-xs leading-snug line-clamp-2 group-hover:text-blue-300 transition">
-                            {product.name}
-                          </h4>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-start justify-between gap-1 mb-1">
+                              <span className="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-white/5 text-slate-400 font-semibold truncate max-w-[65px]" title={product.code}>
+                                {product.code}
+                              </span>
+                              <span
+                                className={`text-[9px] font-semibold px-1.5 py-0.2 rounded-full leading-none ${
+                                  isLowStock
+                                    ? "bg-rose-500/20 text-rose-300 border border-eose-500/30 animate-pulse"
+                                    : "bg-white/5 text-slate-400"
+                                }`}
+                              >
+                                {product.stockQuantity} {product.unit}s
+                              </span>
+                            </div>
 
-                          <div className="mt-1 flex items-center gap-1.5 text-[11px] text-slate-400">
-                            <span className="text-slate-300 font-medium">{product.brand}</span>
-                            {product.size && <span>• {product.size}</span>}
+                            <h4 className="font-semibold text-slate-100 text-xs leading-snug line-clamp-2 group-hover:text-blue-300 transition">
+                              {product.name}
+                            </h4>
+
+                            <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-slate-400">
+                              <span className="text-slate-300 font-medium truncate max-w-[80px]">{product.brand}</span>
+                              {product.size && <span className="shrink-0">• {product.size}</span>}
+                            </div>
                           </div>
                         </div>
 
@@ -841,7 +918,7 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
                           <div>
                             <span className="text-[10px] text-slate-500 block leading-none">Price / {product.unit}</span>
                             <span className="text-sm font-bold text-emerald-400 font-mono">
-                              {settings.currencySymbol} {product.salePrice.toLocaleString()}
+                              {settings.currencySymbol} {(product.salePrice ?? product.price ?? 0).toLocaleString()}
                             </span>
                           </div>
 
@@ -935,6 +1012,8 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
                   cashierId: activeUser.id,
                   cashierRole: activeUser.role,
                   counterStation: activeUser.counterStation || "Counter #1",
+                  branchId: activeUser.branchId || "branch-1",
+                  branchName: activeUser.branchName || "Branch 1 (Main HQ)",
                   printedBy: activeUser.name,
                   printedAt: new Date().toISOString(),
                   notes: notes || undefined,
@@ -966,7 +1045,7 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
               disabled={cart.length === 0 && discountValue === 0 && !selectedCustomerId && !notes}
               className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition border ${
                 cart.length > 0 || discountValue > 0 || selectedCustomerId || notes
-                  ? "bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border-rose-500/40 cursor-pointer"
+                  ? "bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border-eose-500/40 cursor-pointer"
                   : "bg-white/5 text-slate-500 border-slate-700 cursor-not-allowed opacity-60"
               }`}
             >
@@ -986,7 +1065,7 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
                 referrerPolicy="no-referrer"
                 className="w-8 h-8 rounded-full object-cover border border-blue-500/40 shadow-sm"
               />
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-slate-900" />
+              <span className="absolute -bottom-0.5 -end-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-slate-900" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 leading-none">
@@ -1055,11 +1134,11 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
         <div className="p-3 border-b border-slate-800 bg-slate-950/40">
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
-              <User className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+              <User className="w-4 h-4 absolute start-3 top-2.5 text-slate-400" />
               <select
                 value={selectedCustomerId}
                 onChange={(e) => setSelectedCustomerId(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 bg-glass border border-slate-700/80 rounded-xl text-xs text-slate-200 focus:border-blue-500 outline-none"
+                className="w-full ps-9 pe-3 py-2 bg-glass border border-slate-700/80 rounded-xl text-xs text-slate-200 focus:border-blue-500 outline-none"
               >
                 <option value="">{t('select_customer')}</option>
                 {customers.map((c) => (
@@ -1085,7 +1164,7 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
                 <span className="font-semibold text-blue-200 block">{selectedCustomer.name}</span>
                 <span className="text-[10px] text-slate-400">{selectedCustomer.phone || "No phone"}</span>
               </div>
-              <div className="text-right">
+              <div className="text-end">
                 <span className="text-[10px] text-slate-400 block">{t('previous_udhaar')}:</span>
                 <span className="font-bold text-amber-400 font-mono">
                   {settings.currencySymbol} {selectedCustomer.outstandingKhata.toLocaleString()}
@@ -1107,9 +1186,12 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
             cart.map((item, index) => (
               <div key={item.product.id} className="pt-2 first:pt-0 flex items-center justify-between gap-2">
                 
-                {/* Sr No */}
-                <div className="w-5 shrink-0 flex items-center justify-center">
-                  <span className="text-[10px] font-bold text-slate-500">{index + 1}.</span>
+                {/* Sr No & Picture */}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="text-[10px] font-bold text-slate-500 w-4">{index + 1}.</span>
+                  <div className="w-8 h-8 rounded bg-slate-850 overflow-hidden border border-slate-750 flex items-center justify-center shrink-0">
+                    <img src={getProductImage(item.product)} alt="" className="w-full h-full object-cover" />
+                  </div>
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -1127,16 +1209,30 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
                 </div>
 
                 {/* Quantity Controls */}
-                <div className="flex items-center gap-1.5 bg-slate-950 p-1 rounded-lg border border-slate-800">
+                <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800">
                   <button
                     onClick={() => handleUpdateQuantity(item.product.id, -1)}
                     className="w-6 h-6 rounded bg-white/5 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition"
                   >
                     <Minus className="w-3 h-3" />
                   </button>
-                  <span className="w-8 text-center text-xs font-bold text-slate-100 font-mono">
-                    {item.quantity}
-                  </span>
+                  <input
+                    type="number"
+                    min="1"
+                    value={item.quantity || ""}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value);
+                      if (!isNaN(val)) {
+                        setCart((prev) => prev.map((c) => c.product.id === item.product.id ? { ...c, quantity: val, total: val * c.unitPrice } : c));
+                      } else if (e.target.value === "") {
+                        setCart((prev) => prev.map((c) => c.product.id === item.product.id ? { ...c, quantity: 0, total: 0 } : c));
+                      }
+                    }}
+                    onBlur={(e) => {
+                       if (item.quantity === 0) handleRemoveItem(item.product.id);
+                    }}
+                    className="w-8 text-center text-xs font-bold text-slate-100 bg-transparent border-none outline-none font-mono"
+                  />
                   <button
                     onClick={() => handleUpdateQuantity(item.product.id, 1)}
                     className="w-6 h-6 rounded bg-white/5 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition"
@@ -1146,7 +1242,7 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
                 </div>
 
                 {/* Item Total & Remove */}
-                <div className="text-right min-w-[70px]">
+                <div className="text-end min-w-[70px]">
                   <span className="font-bold text-xs text-slate-100 font-mono block">
                     {settings.currencySymbol} {item.total.toLocaleString()}
                   </span>
@@ -1196,7 +1292,7 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
                     value={discountValue || ""}
                     onChange={(e) => setDiscountValue(Number(e.target.value))}
                     placeholder="0"
-                    className="w-20 px-2 py-0.5 bg-glass border border-slate-700 rounded text-right text-emerald-400 font-mono text-xs outline-none"
+                    className="w-20 px-2 py-0.5 bg-glass border border-slate-700 rounded text-end text-emerald-400 font-mono text-xs outline-none"
                   />
                 </div>
               </div>
@@ -1276,7 +1372,7 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
               <div
                 className={`px-3 py-1.5 rounded-lg font-mono font-bold text-xs flex items-center justify-between ${
                   balanceDue > 0
-                    ? "bg-rose-950/40 text-rose-400 border border-rose-500/30"
+                    ? "bg-rose-950/40 text-rose-400 border border-eose-500/30"
                     : "bg-glass text-emerald-400 border border-slate-700"
                 }`}
               >
@@ -1379,8 +1475,8 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
 
       {/* Floating Bottom Quick-Action Bar on Mobile when browsing products with active cart */}
       {mobileViewMode === "products" && cart.length > 0 && (
-        <div className="lg:hidden fixed bottom-3 left-3 right-3 z-40 bg-glass/95 backdrop-blur-md border border-emerald-500/50 p-2.5 rounded-2xl shadow-2xl flex items-center justify-between gap-2 animate-in slide-in-from-bottom-4">
-          <div className="flex items-center gap-2 pl-1">
+        <div className="lg:hidden fixed bottom-3 start-3 end-3 z-40 bg-glass/95 backdrop-blur-md border border-emerald-500/50 p-2.5 rounded-2xl shadow-2xl flex items-center justify-between gap-2 animate-in slide-in-from-bottom-4">
+          <div className="flex items-center gap-2 ps-1">
             <div className="w-9 h-9 rounded-xl bg-emerald-600/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold text-xs">
               {cart.reduce((s, i) => s + i.quantity, 0)}
             </div>
@@ -1405,9 +1501,9 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
       {/* Cancel Bill Confirmation Modal */}
       {showCancelBillModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-glass border border-rose-500/50 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95">
+          <div className="bg-glass border border-eose-500/50 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95">
             <div className="flex items-center gap-3 text-rose-400 mb-3">
-              <div className="w-10 h-10 rounded-xl bg-rose-500/20 flex items-center justify-center shrink-0 border border-rose-500/30">
+              <div className="w-10 h-10 rounded-xl bg-rose-500/20 flex items-center justify-center shrink-0 border border-eose-500/30">
                 <Ban className="w-5 h-5 text-rose-400" />
               </div>
               <div>
@@ -1668,22 +1764,22 @@ export const BillingCounter: React.FC<BillingCounterProps> = ({
                   <table className="w-full text-[11px]">
                     <thead>
                       <tr className="border-b border-slate-400 text-slate-900 font-black">
-                        <th className="text-left py-1">Item</th>
+                        <th className="text-start py-1">Item</th>
                         <th className="text-center py-1">Qty</th>
-                        <th className="text-right py-1">Price</th>
-                        <th className="text-right py-1">Total</th>
+                        <th className="text-end py-1">Price</th>
+                        <th className="text-end py-1">Total</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                       {thermalInvoice.items.map((item, idx) => (
                         <tr key={idx} className="align-top">
-                          <td className="py-1 pr-1">
+                          <td className="py-1 pe-1">
                             <span className="font-bold block text-slate-950">{item.product.name}</span>
                             {item.product.brand && <span className="text-[9px] text-slate-600">{item.product.brand}</span>}
                           </td>
                           <td className="py-1 text-center font-mono whitespace-nowrap">{item.quantity} {item.product.unit || "pcs"}</td>
-                          <td className="py-1 text-right font-mono whitespace-nowrap">{item.unitPrice.toLocaleString()}</td>
-                          <td className="py-1 text-right font-mono font-bold whitespace-nowrap">{item.total.toLocaleString()}</td>
+                          <td className="py-1 text-end font-mono whitespace-nowrap">{item.unitPrice.toLocaleString()}</td>
+                          <td className="py-1 text-end font-mono font-bold whitespace-nowrap">{item.total.toLocaleString()}</td>
                         </tr>
                       ))}
                     </tbody>

@@ -3,6 +3,7 @@ import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import { LanguageProvider } from './context/LanguageContext';
+import { ErrorBoundary } from './components/pos/ErrorBoundary';
 
 // Register Service Worker for installable PWA
 if ('serviceWorker' in navigator) {
@@ -15,8 +16,10 @@ if ('serviceWorker' in navigator) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <LanguageProvider>
-      <App />
-    </LanguageProvider>
+    <ErrorBoundary>
+      <LanguageProvider>
+        <App />
+      </LanguageProvider>
+    </ErrorBoundary>
   </StrictMode>,
 );

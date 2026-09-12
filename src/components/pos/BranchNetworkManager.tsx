@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Branch, BranchCamera, Invoice, StoreSettings, UserAccount } from "../../types";
+import { BranchCommunicationHub } from "./BranchCommunicationHub";
 import { 
   Building2, 
   Video, 
@@ -72,6 +73,7 @@ export const BranchNetworkManager: React.FC<BranchNetworkManagerProps> = ({
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
   const [showAddCamModal, setShowAddCamModal] = useState<string | null>(null); // branchId or null
   const [snapshotNotice, setSnapshotNotice] = useState<string | null>(null);
+  const [autoCallAttenderEnabled, setAutoCallAttenderEnabled] = useState(false);
 
   // Live timer for CCTV feeds
   useEffect(() => {
@@ -148,6 +150,22 @@ export const BranchNetworkManager: React.FC<BranchNetworkManagerProps> = ({
 
         {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-start md:justify-end">
+          {/* Auto-Call Attender Toggle */}
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={() => setAutoCallAttenderEnabled(!autoCallAttenderEnabled)}
+              className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition ${
+                autoCallAttenderEnabled
+                  ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30"
+                  : "bg-slate-800 text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <Phone className="w-3.5 h-3.5" />
+              <span>{autoCallAttenderEnabled ? "Auto-Call ON" : "Auto-Call OFF"}</span>
+            </button>
+            {autoCallAttenderEnabled && <BranchCommunicationHub isEnabled={autoCallAttenderEnabled} />}
+          </div>
+
           {/* View Mode Switcher */}
           <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
             <button
@@ -213,7 +231,7 @@ export const BranchNetworkManager: React.FC<BranchNetworkManagerProps> = ({
             >
               {/* Top Accent Line */}
               <div
-                className={`absolute top-0 left-0 right-0 h-1 ${
+                className={`absolute top-0 start-0 end-0 h-1 ${
                   isBranch1 ? "bg-blue-500" : isBranch2 ? "bg-amber-500" : "bg-purple-500"
                 }`}
               />
@@ -227,7 +245,7 @@ export const BranchNetworkManager: React.FC<BranchNetworkManagerProps> = ({
                       referrerPolicy="no-referrer"
                       className="w-12 h-12 rounded-2xl object-cover border-2 border-slate-700 shadow-md"
                     />
-                    <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-slate-900" />
+                    <span className="absolute -bottom-1 -end-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-slate-900" />
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">
@@ -249,7 +267,7 @@ export const BranchNetworkManager: React.FC<BranchNetworkManagerProps> = ({
                   </div>
                 </div>
 
-                <div className="text-right">
+                <div className="text-end">
                   <span className="text-[10px] text-slate-400 block">Today's Sales</span>
                   <span className="text-sm font-bold text-emerald-400 font-mono">
                     {settings.currencySymbol} {metrics.totalSales.toLocaleString()}
@@ -428,7 +446,7 @@ export const BranchNetworkManager: React.FC<BranchNetworkManagerProps> = ({
 
           {/* Table */}
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full text-start">
               <thead>
                 <tr className="border-b border-slate-800 text-slate-400 text-[11px]">
                   <th className="py-2.5 px-3">بل نمبر (Invoice #)</th>
@@ -436,7 +454,7 @@ export const BranchNetworkManager: React.FC<BranchNetworkManagerProps> = ({
                   <th className="py-2.5 px-3">تاریخ و وقت</th>
                   <th className="py-2.5 px-3">گاہک کا نام</th>
                   <th className="py-2.5 px-3">کاؤنٹر کیشئر</th>
-                  <th className="py-2.5 px-3 text-right">کل رقم</th>
+                  <th className="py-2.5 px-3 text-end">کل رقم</th>
                   <th className="py-2.5 px-3 text-center">ادائیگی طریقہ</th>
                 </tr>
               </thead>
@@ -490,7 +508,7 @@ export const BranchNetworkManager: React.FC<BranchNetworkManagerProps> = ({
                             </div>
                           </div>
                         </td>
-                        <td className="py-3 px-3 text-right font-bold text-emerald-400">
+                        <td className="py-3 px-3 text-end font-bold text-emerald-400">
                           {settings.currencySymbol} {inv.grandTotal.toLocaleString()}
                         </td>
                         <td className="py-3 px-3 text-center">
@@ -572,7 +590,7 @@ export const BranchNetworkManager: React.FC<BranchNetworkManagerProps> = ({
             />
 
             {/* Video OSD */}
-            <div className="absolute top-4 left-4 font-mono text-emerald-400 bg-black/70 px-3 py-1.5 rounded-xl backdrop-blur-sm text-xs space-y-1">
+            <div className="absolute top-4 start-4 font-mono text-emerald-400 bg-black/70 px-3 py-1.5 rounded-xl backdrop-blur-sm text-xs space-y-1">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
                 <span className="font-bold text-rose-400">HQ LIVE MONITORING</span>
@@ -582,7 +600,7 @@ export const BranchNetworkManager: React.FC<BranchNetworkManagerProps> = ({
             </div>
 
             {/* Simulated PTZ Controls */}
-            <div className="absolute bottom-4 right-4 bg-slate-900/80 backdrop-blur-md p-3 rounded-2xl border border-slate-700/80 flex items-center gap-3 text-slate-300">
+            <div className="absolute bottom-4 end-4 bg-slate-900/80 backdrop-blur-md p-3 rounded-2xl border border-slate-700/80 flex items-center gap-3 text-slate-300">
               <div className="flex items-center gap-1.5 text-xs font-semibold">
                 <Volume2 className="w-4 h-4 text-slate-400" />
                 <span>Audio Feed: Active</span>

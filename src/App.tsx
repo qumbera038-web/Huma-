@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { 
   Product, 
   Customer, 
@@ -77,6 +77,7 @@ import { GlobalVoiceCommand } from "./components/pos/GlobalVoiceCommand";
 import { FloatingActionMenu } from "./components/pos/FloatingActionMenu";
 import { DirectInstallModal } from "./components/pos/DirectInstallModal";
 import { AiPriceListUploaderModal } from "./components/pos/AiPriceListUploaderModal";
+import { LowStockToast, LowStockAlertPayload } from "./components/pos/LowStockToast";
 import { Download, Smartphone, Package, Sparkles, Zap, Camera, Crown } from "lucide-react";
 
 export default function App() {
@@ -124,6 +125,115 @@ export default function App() {
   const [expenses, setExpenses] = useState<BusinessExpense[]>(getStoredExpenses);
   const [theme, setTheme] = useState<AppTheme>(getStoredTheme);
 
+  // Low Stock Notification System State
+  const [lowStockAlert, setLowStockAlert] = useState<LowStockAlertPayload | null>(null);
+  const [highlightedProductId, setHighlightedProductId] = useState<string | null>(null);
+  const [showLowStockOnlyInInventory, setShowLowStockOnlyInInventory] = useState<boolean>(false);
+  const prevStockMapRef = useRef<Map<string, number>>(new Map());
+  const initialLowStockCheckedRef = useRef(false);
+
+  const triggerLowStockNotification = (payload: Omit<LowStockAlertPayload, "id" | "timestamp">) => {
+    setLowStockAlert({
+      ...payload,
+      id: `alert-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      timestamp: Date.now(),
+    });
+  };
+
+  const handleViewInInventoryFromToast = (productId?: string) => {
+    setActiveTab("inventory");
+    if (productId) {
+      setHighlightedProductId(productId);
+    }
+    setShowLowStockOnlyInInventory(true);
+    setLowStockAlert(null);
+  };
+
+  // Automatic Low Stock Detection Effect
+  useEffect(() => {
+    if (!products || products.length === 0) return;
+
+    const defaultThresh = settings.lowStockThreshold ?? 5;
+    const allLowItems = products.filter((p) => {
+      const t = p.minStockAlert ?? defaultThresh;
+      return (p.stockQuantity ?? 0) <= t;
+    });
+
+    // 1. Initial Load: Check if any items are currently low stock
+    if (!initialLowStockCheckedRef.current) {
+      initialLowStockCheckedRef.current = true;
+      products.forEach((p) => {
+        prevStockMapRef.current.set(p.id, p.stockQuantity ?? 0);
+      });
+
+      if (allLowItems.length > 0) {
+        const lead = allLowItems[0];
+        const thresh = lead.minStockAlert ?? defaultThresh;
+        const timer = setTimeout(() => {
+          triggerLowStockNotification({
+            productId: lead.id,
+            productName: lead.name,
+            productCode: lead.code,
+            productBrand: lead.brand,
+            currentStock: lead.stockQuantity ?? 0,
+            threshold: thresh,
+            unit: lead.unit,
+            totalLowCount: allLowItems.length,
+            items: allLowItems.map((i) => ({
+              id: i.id,
+              name: i.name,
+              code: i.code,
+              brand: i.brand,
+              currentStock: i.stockQuantity ?? 0,
+              threshold: i.minStockAlert ?? defaultThresh,
+              unit: i.unit,
+            })),
+          });
+        }, 1500);
+        return () => clearTimeout(timer);
+      }
+      return;
+    }
+
+    // 2. Subsequent Updates: Detect items whose stock was consumed and fell <= threshold
+    const newlyFallen: Product[] = [];
+    products.forEach((p) => {
+      const prevQty = prevStockMapRef.current.get(p.id);
+      const currQty = p.stockQuantity ?? 0;
+      const thresh = p.minStockAlert ?? defaultThresh;
+
+      if (prevQty !== undefined && currQty < prevQty && currQty <= thresh) {
+        newlyFallen.push(p);
+      }
+
+      prevStockMapRef.current.set(p.id, currQty);
+    });
+
+    if (newlyFallen.length > 0) {
+      const lead = newlyFallen[0];
+      const thresh = lead.minStockAlert ?? defaultThresh;
+      triggerLowStockNotification({
+        productId: lead.id,
+        productName: lead.name,
+        productCode: lead.code,
+        productBrand: lead.brand,
+        currentStock: lead.stockQuantity ?? 0,
+        threshold: thresh,
+        unit: lead.unit,
+        totalLowCount: allLowItems.length,
+        items: newlyFallen.map((i) => ({
+          id: i.id,
+          name: i.name,
+          code: i.code,
+          brand: i.brand,
+          currentStock: i.stockQuantity ?? 0,
+          threshold: i.minStockAlert ?? defaultThresh,
+          unit: i.unit,
+        })),
+      });
+    }
+  }, [products, settings.lowStockThreshold]);
+
   // Daily Backup Reminder
   useEffect(() => {
     if (settings.enableDailyBackup) {
@@ -168,6 +278,11 @@ export default function App() {
   const handleUpdateProducts = (newProducts: Product[]) => {
     setProducts(newProducts);
     saveStoredProducts(newProducts);
+  };
+
+  const handleRefreshProducts = () => {
+    setProducts(getStoredProducts());
+    showToast("✅ Inventory synced from database.");
   };
 
   const handleUpdateCustomers = (newCustomers: Customer[]) => {
@@ -280,19 +395,18 @@ export default function App() {
 
   // Return processed
   const handleProcessReturn = (
-    invoiceId: string,
-    productId: string,
-    returnQty: number,
+    updatedInvoice: Invoice,
     refundAmount: number,
-    refundMethod: "cash" | "khata_adjust" | "store_credit",
-    reason: string
+    returnedItemId: string,
+    returnedQty: number,
+    returnedItemName: string
   ) => {
     // 1. Restock item in inventory
     const updatedProducts = products.map((p) => {
-      if (p.id === productId || p.code === productId) {
+      if (p.id === returnedItemId || p.code === returnedItemId) {
         return {
           ...p,
-          stockQuantity: p.stockQuantity + returnQty,
+          stockQuantity: (p.stockQuantity || 0) + returnedQty,
         };
       }
       return p;
@@ -300,46 +414,38 @@ export default function App() {
     handleUpdateProducts(updatedProducts);
 
     // 2. Update invoice notes and totals
-    const targetInv = invoices.find((i) => i.id === invoiceId);
-    let updatedInvoices = invoices;
-    if (targetInv) {
-      const updatedInv: Invoice = {
-        ...targetInv,
-        notes: `${targetInv.notes || ""} [RETURNED: ${returnQty}x item - Refunded Rs. ${refundAmount.toLocaleString()} via ${refundMethod}. Reason: ${reason}]`.trim(),
-      };
-      updatedInvoices = invoices.map((i) => (i.id === invoiceId ? updatedInv : i));
-      setInvoices(updatedInvoices);
-      saveStoredInvoices(updatedInvoices);
+    const updatedInvoices = invoices.map((i) => (i.id === updatedInvoice.id ? updatedInvoice : i));
+    setInvoices(updatedInvoices);
+    saveStoredInvoices(updatedInvoices);
 
-      // 3. If refund is khata adjust and customer exists, adjust khata
-      if (refundMethod === "khata_adjust" && targetInv.customerId) {
-        const cust = customers.find((c) => c.id === targetInv.customerId);
-        if (cust) {
-          const newOutstanding = Math.max(0, cust.outstandingKhata - refundAmount);
-          const updatedCust: Customer = {
-            ...cust,
-            outstandingKhata: newOutstanding,
-          };
-          const newTx: KhataTransaction = {
-            id: `tx-${Date.now()}`,
-            customerId: cust.id,
-            date: new Date().toISOString(),
-            type: "credit",
-            amount: refundAmount,
-            description: `Refund for returned items on Invoice #${targetInv.invoiceNumber}`,
-            balanceAfter: newOutstanding,
-          };
-          const updatedKhata = [newTx, ...khataTransactions];
-          setKhataTransactions(updatedKhata);
-          saveStoredKhata(updatedKhata);
+    // 3. If refund is credit and customer exists, adjust khata
+    if (updatedInvoice.customerId && updatedInvoice.paymentMethod === "credit") {
+      const cust = customers.find((c) => c.id === updatedInvoice.customerId);
+      if (cust) {
+        const newOutstanding = Math.max(0, cust.outstandingKhata - refundAmount);
+        const updatedCust: Customer = {
+          ...cust,
+          outstandingKhata: newOutstanding,
+        };
+        const newTx: KhataTransaction = {
+          id: `tx-${Date.now()}`,
+          customerId: cust.id,
+          date: new Date().toISOString(),
+          type: "credit",
+          amount: refundAmount,
+          description: `Refund for returned items on Invoice #${updatedInvoice.invoiceNumber}`,
+          balanceAfter: newOutstanding,
+        };
+        const updatedKhata = [newTx, ...khataTransactions];
+        setKhataTransactions(updatedKhata);
+        saveStoredKhata(updatedKhata);
 
-          const updatedCusts = customers.map((c) => (c.id === cust.id ? updatedCust : c));
-          handleUpdateCustomers(updatedCusts);
-        }
+        const updatedCusts = customers.map((c) => (c.id === cust.id ? updatedCust : c));
+        handleUpdateCustomers(updatedCusts);
       }
     }
 
-    showToast(`✅ Successfully returned ${returnQty} unit(s) and restocked inventory! Refund: Rs. ${refundAmount.toLocaleString()}`);
+    showToast(`✅ Successfully returned ${returnedQty} unit(s) of "${returnedItemName}"! Refund: Rs. ${refundAmount.toLocaleString()}`);
   };
 
   // Global AI Multimodal Products Importer
@@ -593,9 +699,18 @@ export default function App() {
     <div className={`min-h-screen ${themeClassMap[theme] || themeClassMap.slate} flex flex-col font-sans selection:bg-blue-600 selection:text-white transition-colors duration-300 overflow-x-hidden`}>
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-4 right-4 z-50 bg-blue-600 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-2xl border border-blue-400/40 animate-in slide-in-from-top-3 flex items-center gap-2">
+        <div className="fixed top-4 end-4 z-50 bg-blue-600 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-2xl border border-blue-400/40 animate-in slide-in-from-top-3 flex items-center gap-2">
           <span>{toastMessage}</span>
         </div>
+      )}
+
+      {/* Automatic Low Stock Alert In-App Toast Notification */}
+      {lowStockAlert && (
+        <LowStockToast
+          alert={lowStockAlert}
+          onClose={() => setLowStockAlert(null)}
+          onViewInInventory={handleViewInInventoryFromToast}
+        />
       )}
 
       {/* Top POS Header & Nav */}
@@ -605,11 +720,13 @@ export default function App() {
         settings={settings}
         activeUser={activeUser}
         users={users}
+        products={products}
         branches={branches}
         activeBranchId={activeBranchId}
         onSelectBranch={handleSelectBranch}
         onSwitchUser={handleSwitchUser}
         onUpdateUsers={handleUpdateUsers}
+        onRefreshProducts={handleRefreshProducts}
         onOpenReturnModal={() => setShowReturnModal(true)}
         onOpenScanner={() => {
           setActiveTab("billing");
@@ -681,6 +798,9 @@ export default function App() {
             products={products}
             settings={settings}
             onUpdateProducts={handleUpdateProducts}
+            highlightedProductId={highlightedProductId}
+            onClearHighlight={() => setHighlightedProductId(null)}
+            initialShowLowStockOnly={showLowStockOnlyInInventory}
           />
         )}
 
@@ -720,7 +840,8 @@ export default function App() {
         {activeTab === "whatsapp_hub" && (
           <WhatsAppHub
             branches={branches}
-            orders={whatsappOrders}
+            activeBranchId={activeBranchId}
+            whatsappOrders={whatsappOrders}
             settings={settings}
             activeUser={activeUser}
             onUpdateOrders={handleUpdateWhatsAppOrders}
@@ -746,7 +867,7 @@ export default function App() {
             activeUser={activeUser}
             branches={branches}
             attendanceLogs={attendanceLogs}
-            onUpdateAttendanceLogs={handleUpdateAttendanceLogs}
+            settings={settings}
             onPunchIn={handlePunchInAttendance}
           />
         )}
@@ -849,9 +970,11 @@ export default function App() {
       {/* Return Item Modal */}
       {showReturnModal && (
         <ReturnItemModal
+          isOpen={showReturnModal}
           invoices={invoices}
           products={products}
           settings={settings}
+          activeUser={activeUser}
           onProcessReturn={handleProcessReturn}
           onClose={() => setShowReturnModal(false)}
         />

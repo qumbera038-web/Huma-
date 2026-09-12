@@ -203,7 +203,7 @@ export const StaffSecretHub: React.FC<StaffSecretHubProps> = ({
                   className="w-full h-full object-cover opacity-60" 
                   alt="Video Feed"
                 />
-                <div className="absolute bottom-32 right-6 w-32 h-44 rounded-xl border-2 border-white/20 bg-slate-800 overflow-hidden shadow-2xl">
+                <div className="absolute bottom-32 end-6 w-32 h-44 rounded-xl border-2 border-white/20 bg-slate-800 overflow-hidden shadow-2xl">
                    {/* Self Preview */}
                    <img 
                     src={activeUser.avatarUrl} 
@@ -233,7 +233,7 @@ export const StaffSecretHub: React.FC<StaffSecretHubProps> = ({
       </AnimatePresence>
 
       {/* 🗄️ Sidebar - Members List */}
-      <div className="w-80 border-r border-slate-800 bg-slate-900/50 flex flex-col shrink-0">
+      <div className="w-80 border-e border-slate-800 bg-slate-900/50 flex flex-col shrink-0">
         <div className="p-4 border-b border-slate-800 bg-slate-900">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -246,11 +246,11 @@ export const StaffSecretHub: React.FC<StaffSecretHubProps> = ({
             </div>
           </div>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <input 
               type="text" 
               placeholder="اسٹاف ممبر تلاش کریں..." 
-              className="w-full bg-slate-800/50 border border-slate-700 rounded-lg py-2 pl-9 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all"
+              className="w-full bg-slate-800/50 border border-slate-700 rounded-lg py-2 ps-9 pe-4 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all"
             />
           </div>
         </div>
@@ -259,12 +259,12 @@ export const StaffSecretHub: React.FC<StaffSecretHubProps> = ({
           {/* Main Group Chat */}
           <button 
             onClick={() => setActiveChat("group")}
-            className={`w-full p-4 flex items-center gap-3 border-b border-slate-800 transition-colors ${activeChat === "group" ? "bg-indigo-500/10 border-l-4 border-l-indigo-500" : "hover:bg-slate-800/50"}`}
+            className={`w-full p-4 flex items-center gap-3 border-b border-slate-800 transition-colors ${activeChat === "group" ? "bg-indigo-500/10 border-s-4 border-s-indigo-500" : "hover:bg-slate-800/50"}`}
           >
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-600/20">
               <Users className="w-6 h-6 text-white" />
             </div>
-            <div className="flex-1 text-left min-w-0">
+            <div className="flex-1 text-start min-w-0">
               <div className="flex items-center justify-between mb-0.5">
                 <span className="font-bold text-sm text-slate-100">مین اسٹاف گروپ</span>
                 <span className="text-[10px] text-slate-500 font-mono">LIVE</span>
@@ -284,13 +284,13 @@ export const StaffSecretHub: React.FC<StaffSecretHubProps> = ({
                 <button 
                   key={user.id}
                   onClick={() => setActiveChat(user.id)}
-                  className={`w-full p-3 flex items-center gap-3 transition-colors ${activeChat === user.id ? "bg-indigo-500/10 border-l-4 border-l-indigo-500" : "hover:bg-slate-800/50"}`}
+                  className={`w-full p-3 flex items-center gap-3 transition-colors ${activeChat === user.id ? "bg-indigo-500/10 border-s-4 border-s-indigo-500" : "hover:bg-slate-800/50"}`}
                 >
                   <div className="relative">
                     <img src={user.avatarUrl} className="w-10 h-10 rounded-full border border-slate-700 object-cover" alt={user.name} />
-                    <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-slate-900 ${Math.random() > 0.3 ? "bg-emerald-500" : "bg-slate-500"}`} />
+                    <div className={`absolute bottom-0 end-0 w-2.5 h-2.5 rounded-full border-2 border-slate-900 ${Math.random() > 0.3 ? "bg-emerald-500" : "bg-slate-500"}`} />
                   </div>
-                  <div className="flex-1 text-left min-w-0">
+                  <div className="flex-1 text-start min-w-0">
                     <div className="flex items-center justify-between mb-0.5">
                       <span className="font-bold text-[13px] text-slate-200 truncate">{user.name}</span>
                     </div>
@@ -412,8 +412,8 @@ export const StaffSecretHub: React.FC<StaffSecretHubProps> = ({
                     )}
                     <div className={`px-4 py-2.5 rounded-2xl shadow-lg relative ${
                       isMe 
-                        ? "bg-indigo-600 text-white rounded-tr-none" 
-                        : "bg-slate-900 border border-slate-800 text-slate-100 rounded-tl-none"
+                        ? "bg-indigo-600 text-white rounded-te-none" 
+                        : "bg-slate-900 border border-slate-800 text-slate-100 rounded-ts-none"
                     }`}>
                       <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
                       <div className={`flex items-center gap-1 mt-1 ${isMe ? "justify-end" : "justify-start"}`}>
@@ -434,7 +434,7 @@ export const StaffSecretHub: React.FC<StaffSecretHubProps> = ({
         {/* Input Bar */}
         <div className="p-4 bg-slate-900/50 border-t border-slate-800">
           <div className="max-w-4xl mx-auto flex items-end gap-3 bg-slate-900 border border-slate-800 rounded-2xl p-2 shadow-xl">
-            <div className="flex items-center gap-1 pb-1 pl-1">
+            <div className="flex items-center gap-1 pb-1 ps-1">
               <button className="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
                 <Plus className="w-5 h-5" />
               </button>
@@ -454,11 +454,11 @@ export const StaffSecretHub: React.FC<StaffSecretHubProps> = ({
               }}
               placeholder="پیغام لکھیں..."
               rows={1}
-              className="flex-1 bg-transparent border-none text-slate-100 text-sm focus:ring-0 resize-none py-2 px-2 custom-scrollbar max-h-32 text-right"
+              className="flex-1 bg-transparent border-none text-slate-100 text-sm focus:ring-0 resize-none py-2 px-2 custom-scrollbar max-h-32 text-end"
               style={{ direction: 'rtl' }}
             />
 
-            <div className="flex items-center gap-1 pb-1 pr-1">
+            <div className="flex items-center gap-1 pb-1 pe-1">
               <button className="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
                 <ImageIcon className="w-5 h-5" />
               </button>

@@ -329,7 +329,7 @@ export const StaffKycModal: React.FC<StaffKycModalProps> = ({
                     <button
                       type="button"
                       onClick={captureSnapshot}
-                      className="absolute bottom-2 left-1/2 -translate-x-1/2 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-bold shadow transition"
+                      className="absolute bottom-2 start-1/2 -translate-x-1/2 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-bold shadow transition"
                     >
                       تصویر لیں
                     </button>
@@ -342,7 +342,7 @@ export const StaffKycModal: React.FC<StaffKycModalProps> = ({
                       referrerPolicy="no-referrer"
                       className="w-28 h-28 rounded-2xl object-cover border-2 border-blue-500 shadow-xl ring-2 ring-blue-500/20"
                     />
-                    <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-slate-950 shadow" title="Picture Attached" />
+                    <span className="absolute -bottom-1 -end-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-slate-950 shadow" title="Picture Attached" />
                   </div>
                 )}
 
@@ -405,14 +405,14 @@ export const StaffKycModal: React.FC<StaffKycModalProps> = ({
                     ذاتی موبائل / واٹس ایپ نمبر *
                   </label>
                   <div className="relative">
-                    <Phone className="w-3.5 h-3.5 text-amber-400 absolute left-3 top-3" />
+                    <Phone className="w-3.5 h-3.5 text-amber-400 absolute start-3 top-3" />
                     <input
                       type="text"
                       required
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="0300-5861463"
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-3 py-2.5 text-xs text-amber-300 font-mono font-bold outline-none focus:border-blue-500"
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl ps-9 pe-3 py-2.5 text-xs text-amber-300 font-mono font-bold outline-none focus:border-blue-500"
                     />
                   </div>
                 </div>
@@ -487,7 +487,7 @@ export const StaffKycModal: React.FC<StaffKycModalProps> = ({
                           <button
                             type="button"
                             onClick={() => setCnicFrontUrl("")}
-                            className="absolute top-1 right-1 px-1.5 py-0.5 bg-rose-600 text-white rounded text-[8px] font-bold shadow"
+                            className="absolute top-1 end-1 px-1.5 py-0.5 bg-rose-600 text-white rounded text-[8px] font-bold shadow"
                           >
                             تبدیل
                           </button>
@@ -527,7 +527,7 @@ export const StaffKycModal: React.FC<StaffKycModalProps> = ({
                           <button
                             type="button"
                             onClick={() => setCnicBackUrl("")}
-                            className="absolute top-1 right-1 px-1.5 py-0.5 bg-rose-600 text-white rounded text-[8px] font-bold shadow"
+                            className="absolute top-1 end-1 px-1.5 py-0.5 bg-rose-600 text-white rounded text-[8px] font-bold shadow"
                           >
                             تبدیل
                           </button>
@@ -563,14 +563,14 @@ export const StaffKycModal: React.FC<StaffKycModalProps> = ({
                   مکمل مستقل و موجودہ رہائشی پتہ (Address) *
                 </label>
                 <div className="relative">
-                  <Home className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
+                  <Home className="w-3.5 h-3.5 text-slate-400 absolute start-3 top-3" />
                   <input
                     type="text"
                     required
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     placeholder="مکان نمبر، گلی نمبر، محلہ، علاقہ، پشاور"
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-3 py-2.5 text-xs text-slate-200 outline-none focus:border-blue-500"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl ps-9 pe-3 py-2.5 text-xs text-slate-200 outline-none focus:border-blue-500"
                   />
                 </div>
                 <p className="text-[10px] text-slate-500 mt-1">موجودہ تصدیق شدہ رہائشی ایڈریس</p>
@@ -628,14 +628,14 @@ export const StaffKycModal: React.FC<StaffKycModalProps> = ({
                   دوسرے فرد کا فون نمبر (2nd Phone) *
                 </label>
                 <div className="relative">
-                  <Phone className="w-3.5 h-3.5 text-amber-400 absolute left-3 top-3" />
+                  <Phone className="w-3.5 h-3.5 text-amber-400 absolute start-3 top-3" />
                   <input
                     type="text"
                     required
                     value={secondContactPhone}
                     onChange={(e) => setSecondContactPhone(e.target.value)}
                     placeholder="0301-9988776"
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-3 py-2.5 text-xs text-amber-300 font-mono font-bold outline-none focus:border-blue-500"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl ps-9 pe-3 py-2.5 text-xs text-amber-300 font-mono font-bold outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
@@ -657,7 +657,7 @@ export const StaffKycModal: React.FC<StaffKycModalProps> = ({
                   : "bg-slate-900 border-indigo-600/50 hover:border-indigo-500 shadow-2xl"
               }`}>
                 {!isBiometricVerified && (
-                  <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-indigo-500 to-transparent animate-pulse" />
+                  <div className="absolute top-0 start-0 w-full h-1.5 bg-gradient-to-r from-transparent via-indigo-500 to-transparent animate-pulse" />
                 )}
 
                 <div className={`w-32 h-32 rounded-full flex items-center justify-center mb-5 relative transition-all duration-700 ${
@@ -675,7 +675,7 @@ export const StaffKycModal: React.FC<StaffKycModalProps> = ({
                     <div className="absolute inset-0 bg-blue-500/40 rounded-full animate-pulse border-4 border-blue-400 shadow-[0_0_30px_rgba(59,130,246,0.6)]" />
                   )}
                   {isScanningFingerprint && (
-                    <div className="absolute top-0 left-0 w-full h-full border-4 border-t-white border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin" />
+                    <div className="absolute top-0 start-0 w-full h-full border-4 border-t-white border-e-transparent border-b-transparent border-s-transparent rounded-full animate-spin" />
                   )}
                 </div>
 
@@ -727,7 +727,7 @@ export const StaffKycModal: React.FC<StaffKycModalProps> = ({
                   : "bg-slate-900 border-blue-600/50 hover:border-blue-500 shadow-2xl"
               }`}>
                 {!isFaceVerified && (
-                  <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent animate-pulse" />
+                  <div className="absolute top-0 start-0 w-full h-1.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent animate-pulse" />
                 )}
 
                 <div className={`w-32 h-32 rounded-full flex items-center justify-center mb-5 relative transition-all duration-700 ${

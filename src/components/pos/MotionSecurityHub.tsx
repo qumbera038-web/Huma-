@@ -201,7 +201,7 @@ export const MotionSecurityHub: React.FC<MotionSecurityHubProps> = ({
     <div className="p-4 sm:p-6 max-w-[1700px] mx-auto space-y-6 text-slate-100 font-sans">
       {/* Top Banner */}
       <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-500/30 p-5 rounded-3xl shadow-2xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute end-0 top-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex items-center gap-4 z-10">
           <div className="w-16 h-16 rounded-2xl bg-indigo-600/20 border-2 border-indigo-400 flex items-center justify-center text-indigo-300 shadow-xl shrink-0">
@@ -357,13 +357,13 @@ export const MotionSecurityHub: React.FC<MotionSecurityHubProps> = ({
           </select>
 
           <div className="relative flex-1 md:w-64">
-            <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-slate-500 absolute start-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="تلاش: نام، بل نمبر، گاڑی، کیمرہ..."
-              className="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-8 pr-3 py-2 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-indigo-500"
+              className="w-full bg-slate-950 border border-slate-700/80 rounded-xl ps-8 pe-3 py-2 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-indigo-500"
             />
           </div>
         </div>
@@ -401,7 +401,7 @@ export const MotionSecurityHub: React.FC<MotionSecurityHubProps> = ({
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-black/50" />
 
                   {/* Top Badges */}
-                  <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
+                  <div className="absolute top-3 start-3 end-3 flex items-center justify-between gap-2">
                     <span
                       className={`px-2.5 py-1 rounded-lg text-[10px] font-black border uppercase flex items-center gap-1 shadow-md ${
                         isMotion
@@ -429,7 +429,7 @@ export const MotionSecurityHub: React.FC<MotionSecurityHubProps> = ({
                   </div>
 
                   {/* Bottom Image Overlay Info */}
-                  <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between text-[11px] text-slate-300">
+                  <div className="absolute bottom-2 start-3 end-3 flex items-center justify-between text-[11px] text-slate-300">
                     <span className="font-mono text-xs font-semibold text-slate-200 truncate max-w-[200px]">
                       📹 {snap.cameraName}
                     </span>
@@ -662,7 +662,7 @@ export const MotionSecurityHub: React.FC<MotionSecurityHubProps> = ({
                       key={idx}
                       type="button"
                       onClick={() => setDispatchImageUrl(img.url)}
-                      className={`relative rounded-xl overflow-hidden border p-1 text-left ${
+                      className={`relative rounded-xl overflow-hidden border p-1 text-start ${
                         dispatchImageUrl === img.url
                           ? "border-indigo-500 ring-2 ring-indigo-500/30"
                           : "border-slate-800 hover:border-slate-700"
@@ -730,7 +730,7 @@ export const MotionSecurityHub: React.FC<MotionSecurityHubProps> = ({
                 referrerPolicy="no-referrer"
                 className="w-full h-80 object-cover"
               />
-              <div className="absolute bottom-3 left-3 right-3 bg-slate-950/80 backdrop-blur-sm p-2.5 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+              <div className="absolute bottom-3 start-3 end-3 bg-slate-950/80 backdrop-blur-sm p-2.5 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
                 <span className="font-mono text-emerald-400 font-bold">
                   {selectedSnapshot.cameraName}
                 </span>

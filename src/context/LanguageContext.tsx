@@ -20,6 +20,20 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, []);
 
+  useEffect(() => {
+    // Apply RTL for Urdu and Pashto
+    const isRtl = language === 'ur' || language === 'ps';
+    document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
+    document.documentElement.lang = language;
+    
+    // Optional: Add a class for specific CSS overrides if needed
+    if (isRtl) {
+      document.documentElement.classList.add('rtl-layout');
+    } else {
+      document.documentElement.classList.remove('rtl-layout');
+    }
+  }, [language]);
+
   const setLanguage = (lang: AppLanguage) => {
     setLanguageState(lang);
     localStorage.setItem('pos_language', lang);

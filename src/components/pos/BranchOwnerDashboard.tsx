@@ -34,6 +34,7 @@ import {
   Smartphone
 } from "lucide-react";
 import { StaffKycModal } from "./StaffKycModal";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { DEFAULT_USERS, DEFAULT_BRANCHES } from "../../data/posData";
 import { generateDailyReportText, sendToWhatsApp } from "../../utils/reportUtils";
 
@@ -116,9 +117,12 @@ export const BranchOwnerDashboard: React.FC<BranchOwnerDashboardProps> = ({
 
   return (
     <div className="p-4 sm:p-6 max-w-[1700px] mx-auto space-y-6 text-slate-100 font-sans">
+      <div className="flex justify-end mb-4">
+        <LanguageSwitcher />
+      </div>
       {/* Branch Head Top Banner with Full KYC & Security Details */}
       <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 border border-blue-500/30 p-5 rounded-3xl shadow-2xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute end-0 top-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 z-10">
           <div className="relative shrink-0">
@@ -132,7 +136,7 @@ export const BranchOwnerDashboard: React.FC<BranchOwnerDashboardProps> = ({
               referrerPolicy="no-referrer"
               className="w-20 h-20 rounded-2xl object-cover border-2 border-blue-400 shadow-xl ring-4 ring-blue-500/20"
             />
-            <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-slate-900 shadow" title="Active on Duty" />
+            <span className="absolute -bottom-1 -end-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-slate-900 shadow" title="Active on Duty" />
           </div>
 
           <div className="space-y-1">
@@ -322,7 +326,7 @@ export const BranchOwnerDashboard: React.FC<BranchOwnerDashboardProps> = ({
                 ✅ All PPRC/PVC stock levels are healthy in this branch!
               </p>
             ) : (
-              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-48 overflow-y-auto pe-1">
                 {branchLowStockItems.slice(0, 5).map((item) => (
                   <div key={item.id} className="flex items-center justify-between text-xs bg-slate-900 p-2 rounded-xl border border-slate-800">
                     <span className="font-medium text-slate-200 truncate max-w-[150px]">{item.name}</span>
@@ -411,7 +415,7 @@ export const BranchOwnerDashboard: React.FC<BranchOwnerDashboardProps> = ({
                     </div>
                   </div>
 
-                  <div className="text-right">
+                  <div className="text-end">
                     <span className="font-extrabold text-slate-100 font-mono block">
                       {settings.currencySymbol} {inv.grandTotal.toLocaleString()}
                     </span>
@@ -461,7 +465,7 @@ export const BranchOwnerDashboard: React.FC<BranchOwnerDashboardProps> = ({
                       referrerPolicy="no-referrer"
                       className="w-12 h-12 rounded-xl object-cover border border-indigo-400/40"
                     />
-                    <span className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-emerald-500 border border-slate-950" />
+                    <span className="absolute -bottom-1 -end-1 w-3 h-3 rounded-full bg-emerald-500 border border-slate-950" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-1">
@@ -555,11 +559,15 @@ export const BranchOwnerDashboard: React.FC<BranchOwnerDashboardProps> = ({
               <div className="h-32 bg-slate-900 rounded-xl flex flex-col items-center justify-center relative border border-slate-800/80">
                 <Video className="w-8 h-8 text-slate-600 mb-1" />
                 <span className="text-[11px] font-mono text-slate-400">Camera Feed #{idx + 1}</span>
-                <div className="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-950/80 text-[10px] text-emerald-400 font-mono font-bold">
+                <div className="absolute top-2 start-2 flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-950/80 text-[10px] text-emerald-400 font-mono font-bold">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                   <span>REC</span>
                 </div>
-                <div className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-slate-950/80 text-[9px] text-slate-400 font-mono">
+                <div className="absolute top-2 end-2 flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-950/80 text-[10px] text-amber-400 font-mono font-bold">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                  <span>MOTION ACTIVE</span>
+                </div>
+                <div className="absolute bottom-2 end-2 px-1.5 py-0.5 rounded bg-slate-950/80 text-[9px] text-slate-400 font-mono">
                   1080p • 30fps
                 </div>
               </div>

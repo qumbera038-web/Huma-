@@ -49,11 +49,11 @@ export const PosExportCenter: React.FC<PosExportCenterProps> = ({ settings, onOp
       {/* 🚀 MASTER 1-CLICK BUNDLE (Requested by User for "Easy" experience) */}
       <div className="bg-gradient-to-br from-indigo-600 via-blue-700 to-indigo-800 p-6 rounded-3xl shadow-2xl border-4 border-white/20 relative overflow-hidden group">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
-        <div className="absolute -top-10 -left-10 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-400/20 rounded-full blur-3xl" />
+        <div className="absolute -top-10 -start-10 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-10 -end-10 w-40 h-40 bg-blue-400/20 rounded-full blur-3xl" />
         
         <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="text-center sm:text-left">
+          <div className="text-center sm:text-start">
             <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter mb-1 flex items-center justify-center sm:justify-start gap-3">
               <Sparkles className="w-8 h-8 text-amber-400 animate-pulse" />
               <span>ماسٹر ڈائریکٹ انسٹال (1-Click)</span>
@@ -80,7 +80,7 @@ export const PosExportCenter: React.FC<PosExportCenterProps> = ({ settings, onOp
             className="w-full sm:w-auto px-10 py-5 bg-white text-blue-800 hover:bg-amber-400 hover:text-slate-900 font-black text-lg rounded-2xl flex items-center justify-center gap-3 transition-all shadow-2xl shadow-blue-900/40 active:scale-95 group-hover:scale-105"
           >
             <Download className="w-7 h-7" />
-            <div className="text-left">
+            <div className="text-start">
               <div className="text-[10px] uppercase font-black opacity-70 leading-none mb-1">Direct Install</div>
               <div className="leading-none">ڈاؤن لوڈ کریں</div>
             </div>
@@ -90,7 +90,7 @@ export const PosExportCenter: React.FC<PosExportCenterProps> = ({ settings, onOp
 
       {/* Top Banner */}
       <div className="bg-gradient-to-r from-amber-950/60 via-slate-900 to-amber-950/60 border border-amber-500/40 p-4 sm:p-6 rounded-3xl shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 end-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
           <div className="flex items-center gap-3.5">
@@ -138,7 +138,7 @@ export const PosExportCenter: React.FC<PosExportCenterProps> = ({ settings, onOp
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Card 1: 1 Android APK Package */}
         <div className="bg-gradient-to-b from-amber-950/40 via-slate-900 to-slate-950 border-2 border-amber-500/50 rounded-3xl p-5 sm:p-6 shadow-2xl flex flex-col justify-between relative overflow-hidden group hover:border-amber-400 transition-all">
-          <div className="absolute top-3 right-3">
+          <div className="absolute top-3 end-3">
             <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-500 text-slate-950 uppercase tracking-wider shadow-md">
               Android APK 📱
             </span>
@@ -203,7 +203,7 @@ export const PosExportCenter: React.FC<PosExportCenterProps> = ({ settings, onOp
 
         {/* Card 2: 1 Single Standalone Offline HTML File */}
         <div className="bg-gradient-to-b from-emerald-950/40 via-slate-900 to-slate-950 border-2 border-emerald-500/50 rounded-3xl p-5 sm:p-6 shadow-2xl flex flex-col justify-between relative overflow-hidden group hover:border-emerald-400 transition-all">
-          <div className="absolute top-3 right-3">
+          <div className="absolute top-3 end-3">
             <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500 text-slate-950 uppercase tracking-wider shadow-md">
               1-File Standalone ⚡
             </span>
@@ -385,7 +385,7 @@ export const PosExportCenter: React.FC<PosExportCenterProps> = ({ settings, onOp
 
       {/* QR Code and Mobile Scanner Card */}
       <div className="bg-slate-900/90 border border-slate-800 p-5 rounded-3xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="space-y-1 text-center sm:text-left">
+        <div className="space-y-1 text-center sm:text-start">
           <h3 className="font-bold text-white text-sm flex items-center gap-2 justify-center sm:justify-start">
             <QrCode className="w-4 h-4 text-amber-400" />
             <span>موبائل سے کیو آر کوڈ اسکین کریں (Scan to Open on Android)</span>

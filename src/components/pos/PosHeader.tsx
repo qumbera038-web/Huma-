@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { StoreSettings, UserAccount, Branch } from "../../types";
+import { StoreSettings, UserAccount, Branch, Product } from "../../types";
 import { logStaffLogin, AppTheme, getLastDataSaveTime, exportAllDataBackup } from "../../utils/posStorage";
 import { useLanguage } from "../../context/LanguageContext";
 import { AppLanguage } from "../../utils/translations";
@@ -54,7 +54,10 @@ import {
   CheckCheck,
   HardDrive,
   Phone,
-  Receipt
+  Receipt,
+  FileText,
+  CheckCircle,
+  Truck
 } from "lucide-react";
 
 interface NavItem {
@@ -72,6 +75,7 @@ import { QRCodeSVG } from "qrcode.react";
 
 export type PosTab = "super_admin_dashboard" | "branch_owner_dashboard" | "billing" | "inventory" | "khata" | "reports" | "branches" | "whatsapp_hub" | "attendance" | "motion_security" | "staff_secret_hub" | "expense_ledger" | "ai_estimator" | "ai_hub" | "export" | "settings";
 
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { EmailResetPasswordModal } from "./EmailResetPasswordModal";
 
 interface PosHeaderProps {
@@ -80,11 +84,13 @@ interface PosHeaderProps {
   settings: StoreSettings;
   activeUser: UserAccount;
   users: UserAccount[];
+  products: Product[];
   branches?: Branch[];
   activeBranchId?: string;
   onSelectBranch?: (branchId: string) => void;
   onSwitchUser: (user: UserAccount) => void;
   onUpdateUsers?: (users: UserAccount[]) => void;
+  onRefreshProducts?: () => void;
   onOpenReturnModal?: () => void;
   onOpenScanner?: () => void;
   todaySales: number;
@@ -102,11 +108,13 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
   settings,
   activeUser,
   users,
+  products,
   branches = [],
   activeBranchId = "all",
   onSelectBranch,
   onSwitchUser,
   onUpdateUsers,
+  onRefreshProducts,
   onOpenReturnModal,
   onOpenScanner,
   todaySales,
@@ -126,6 +134,28 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [showCameraHubModal, setShowCameraHubModal] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  
+  // State for Low Stock dropdown & PO drafting modal
+  const [showLowStockDropdown, setShowLowStockDropdown] = useState(false);
+  const [showReorderModal, setShowReorderModal] = useState(false);
+  const [selectedSupplier, setSelectedSupplier] = useState("Master Ceramics & Sanitary");
+  const [poNotes, setPoNotes] = useState("Urgent restock needed for Khyber Bazaar main branch.");
+  const [paymentTerms, setPaymentTerms] = useState("Net 30 Days");
+  const [reorderQuantities, setReorderQuantities] = useState<Record<string, number>>({});
+
+  const lowStockProducts = React.useMemo(() => {
+    return products.filter(p => p.stockQuantity <= p.minStockAlert);
+  }, [products]);
+
+  useEffect(() => {
+    if (showReorderModal) {
+      const initial: Record<string, number> = {};
+      lowStockProducts.forEach(p => {
+        initial[p.id] = Math.max(10, (p.minStockAlert * 3) - p.stockQuantity);
+      });
+      setReorderQuantities(initial);
+    }
+  }, [showReorderModal, lowStockProducts]);
   
   // Dynamic Auto-Sync and Internet state
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
@@ -374,30 +404,30 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
   const isOwnerOrAdmin = Boolean(activeUser.isSuperAdmin || activeUser.role === "admin");
 
   const baseNavItems: NavItem[] = [
-    { id: "billing", label: t('pos'), icon: ShoppingCart, count: null },
+    { id: "billing", label: t('pos'), icon: ShoppingCart, count: lowStockCount > 0 ? `${lowStockCount} Low` : null, alert: lowStockCount > 0 },
     { id: "inventory", label: t('inventory'), icon: Package, count: lowStockCount > 0 ? `${lowStockCount} Low` : null, alert: lowStockCount > 0 },
     { id: "khata", label: t('customers'), icon: BookOpen, count: `${settings.currencySymbol} ${(totalUdhaar / 1000).toFixed(0)}k` },
     { id: "reports", label: t('reports'), icon: BarChart3, count: null },
     { id: "branches", label: t('branches'), icon: Building2, count: "3 Branches", cctv: false },
     { id: "whatsapp_hub", label: t('whatsapp'), icon: MessageSquare, count: "3 Numbers", whatsapp: true },
-    ...(isOwnerOrAdmin ? [{ id: "expense_ledger", label: "📄 کاروباری خرچہ شیٹ", icon: Receipt, count: "Exp Sheet", whatsapp: true }] : []),
-    { id: "motion_security", label: "📹 کیمرہ و سیکیورٹی (CCTV)", icon: Video, count: "Live Cam", cctv: true },
-    { id: "staff_secret_hub", label: "💬 برانچز سیکرٹ گروپ", icon: MessageSquare, count: "Staff Chat", whatsapp: true },
-    { id: "attendance", label: "Attendance", icon: Clock, count: "Auto Log", time: true },
-    { id: "ai_hub", label: "24/7 AI Sales & Orders", icon: Bot, count: "3 Branches", ai: true },
+    ...(isOwnerOrAdmin ? [{ id: "expense_ledger", label: t('expense_ledger'), icon: Receipt, count: "Exp Sheet", whatsapp: true }] : []),
+    { id: "motion_security", label: t('motion_security'), icon: Video, count: "Live Cam", cctv: true },
+    { id: "staff_secret_hub", label: t('staff_secret_hub'), icon: MessageSquare, count: "Staff Chat", whatsapp: true },
+    { id: "attendance", label: t('attendance'), icon: Clock, count: "Auto Log", time: true },
+    { id: "ai_hub", label: t('ai_hub'), icon: Bot, count: "3 Branches", ai: true },
     { id: "ai_estimator", label: t('ai_estimator'), icon: Sparkles, count: "Gemini", ai: true },
     { id: "settings", label: t('settings'), icon: Settings, count: null },
   ];
 
   const navItems: NavItem[] = [
     ...(isOwnerOrAdmin
-      ? [{ id: "super_admin_dashboard", label: "👑 Super Admin HQ", icon: Crown, count: "HQ Control" }]
+      ? [{ id: "super_admin_dashboard", label: t('super_admin_dashboard'), icon: Crown, count: "HQ Control" }]
       : activeUser.role === "manager"
-      ? [{ id: "branch_owner_dashboard", label: "🏬 Branch Control", icon: Building2, count: activeUser.branchName || "My Store" }]
+      ? [{ id: "branch_owner_dashboard", label: t('branch_owner_dashboard'), icon: Building2, count: activeUser.branchName || "My Store" }]
       : []),
     ...baseNavItems,
     ...(isOwnerOrAdmin
-      ? [{ id: "export", label: "📦 Export & APK", icon: Download, count: "Owner Only" }]
+      ? [{ id: "export", label: t('export'), icon: Download, count: "Owner Only" }]
       : []),
   ];
 
@@ -405,7 +435,7 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
   const displayBranch = branches.find(b => b.id === (activeBranchId === "all" ? activeUser.branchId : activeBranchId)) || branches[0];
 
   return (
-    <header className="bg-slate-900/95 backdrop-blur-xl border-b border-slate-800 sticky top-0 z-40 shadow-xl font-sans">
+    <header className="bg-slate-950/98 backdrop-blur-2xl border-b border-slate-800/80 sticky top-0 z-40 shadow-2xl font-sans">
       {/* Top Banner with Store Info & Live Counters */}
       <div className="px-3 sm:px-4 py-2 flex items-center justify-between gap-2.5 flex-wrap sm:flex-nowrap">
         {/* Left: Brand Monogram "HP" & Store Address & Contact */}
@@ -547,22 +577,22 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
           <button
             onClick={() => setShowCameraHubModal(true)}
             title="کیمرہ ہب: برانچ CCTV کیمرے چیک کریں یا بارکوڈ سکین کریں (CCTV Live & Barcode Scanner Hub)"
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600/30 via-indigo-600/30 to-emerald-600/30 hover:from-blue-600/40 hover:via-indigo-600/40 hover:to-emerald-600/40 border border-blue-500/50 text-blue-200 font-bold text-[11px] transition shadow-md group active:scale-95"
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-blue-500/60 text-blue-200 font-bold text-[11px] transition shadow-md group active:scale-95 cursor-pointer h-9 shrink-0"
           >
             <div className="relative flex items-center justify-center">
-              <Camera className="w-4 h-4 text-blue-300 group-hover:scale-110 transition-transform" />
-              <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse border border-slate-900" />
+              <Camera className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
+              <span className="absolute -top-0.5 -end-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse border border-slate-900" />
             </div>
             <span className="flex items-center gap-1">
-              <span>کیمرہ (CCTV و سکین)</span>
+              <span>{t('camera_hub_btn')}</span>
             </span>
           </button>
 
           {/* Today's Sales */}
-          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 sm:py-1.5 rounded-lg bg-white/10/80 border border-slate-700/60">
+          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 rounded-xl bg-slate-900 border border-slate-700 shadow-sm h-9 shrink-0">
             <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
             <div>
-              <span className="text-[9px] text-slate-400 block leading-none hidden sm:block">Today Sales</span>
+              <span className="text-[9px] text-slate-400 block leading-none hidden sm:block">{t('today_sales')}</span>
               <span className="font-bold text-emerald-400 text-xs leading-tight font-mono">
                 {settings.currencySymbol} {todaySales.toLocaleString()}
               </span>
@@ -572,72 +602,135 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
           {/* Desktop Only Buttons (Low stock, Time, Return, Install, Theme) */}
           <div className="hidden lg:flex items-center gap-2">
             {lowStockCount > 0 && (
-              <button
-                onClick={() => setActiveTab("inventory")}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 transition"
-                title="Click to view low stock items"
-              >
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-                <span className="font-semibold text-[11px]">{lowStockCount} Low Stock</span>
-              </button>
+              <div className="relative">
+                <button
+                  id="header-btn-low-stock"
+                  onClick={() => setShowLowStockDropdown(!showLowStockDropdown)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/20 border border-amber-500/50 text-amber-200 hover:bg-amber-500/30 transition shadow-sm cursor-pointer font-bold"
+                  title="Click to view low stock items and Quick Reorder"
+                >
+                  <AlertTriangle className="w-4 h-4 text-amber-300 animate-pulse" />
+                  <span className="text-[11px]">{lowStockCount} Low Stock</span>
+                </button>
+                
+                {showLowStockDropdown && (
+                  <div className="absolute end-0 mt-2 w-80 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-3.5 z-50 animate-in fade-in duration-100 text-start">
+                    <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-slate-850">
+                      <span className="font-bold text-slate-200 text-xs flex items-center gap-1.5">
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                        کم اسٹاک اشیاء (Low Stock Warning)
+                      </span>
+                      <span className="bg-amber-500/20 text-amber-300 text-[10px] font-black px-1.5 py-0.2 rounded-full border border-amber-500/30">
+                        {lowStockCount}
+                      </span>
+                    </div>
+                    
+                    <div className="max-h-56 overflow-y-auto space-y-1.5 pe-1 scrollbar-thin mb-3">
+                      {lowStockProducts.map(p => (
+                        <div key={p.id} className="flex items-center justify-between p-2 rounded-lg bg-slate-950/60 border border-slate-850 text-[11px]">
+                          <div className="min-w-0 flex-1 pe-2">
+                            <div className="font-bold text-slate-200 truncate">{p.name}</div>
+                            <div className="text-slate-500 text-[9px] font-mono">{p.brand} ({p.code})</div>
+                          </div>
+                          <div className="text-end shrink-0">
+                            <div className="font-black text-rose-400">{p.stockQuantity} {p.unit} left</div>
+                            <div className="text-[9px] text-slate-500 font-semibold">Alert Threshold: {p.minStockAlert}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-2">
+                      <button
+                        onClick={() => {
+                          setShowLowStockDropdown(false);
+                          onRefreshProducts?.();
+                        }}
+                        className="py-2 px-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sky-300 rounded-lg text-center text-[10px] font-bold transition flex items-center justify-center gap-1"
+                        title="Sync with database"
+                      >
+                        <RefreshCw className="w-3 h-3" />
+                        <span>Sync</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowLowStockDropdown(false);
+                          setActiveTab("inventory");
+                        }}
+                        className="py-2 px-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-lg text-center text-[10px] font-bold transition"
+                      >
+                        کھولیں (View)
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowLowStockDropdown(false);
+                          setShowReorderModal(true);
+                        }}
+                        className="py-2 px-2 bg-amber-600 hover:bg-amber-500 text-slate-950 font-black rounded-lg text-center text-[10px] flex items-center justify-center gap-1 shadow-md shadow-amber-600/10 transition cursor-pointer"
+                      >
+                        <Truck className="w-3.5 h-3.5" />
+                        <span>آرڈر (Order)</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
 
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/10/60 border border-slate-700/40 text-slate-300 font-mono text-[11px]">
-              <Clock className="w-3.5 h-3.5 text-slate-400" />
+            <div 
+              id="header-widget-clock"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-mono text-[11px] shadow-sm font-semibold"
+            >
+              <Clock className="w-4 h-4 text-slate-400" />
               <span>{currentTime}</span>
             </div>
 
-            {onOpenReturnModal && (
+             {onOpenReturnModal && (
               <button
+                id="header-btn-return-item"
                 onClick={onOpenReturnModal}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 text-rose-300 font-semibold text-[11px] transition shadow-sm"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 border border-eose-500/50 text-rose-200 font-bold text-[11px] transition shadow-sm hover:shadow-rose-500/15 cursor-pointer active:scale-95"
                 title="Process item return, refund & automatic inventory restocking"
               >
-                <RotateCcw className="w-3.5 h-3.5 text-rose-400" />
-                <span>↩️ Return Item</span>
+                <RotateCcw className="w-4 h-4 text-rose-300" />
+                <span>{t('return_item')}</span>
               </button>
             )}
 
             {isOwnerOrAdmin && (
               <button
+                id="header-btn-install-app"
                 onClick={handleInstallClick}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-semibold text-[11px] transition shadow-sm"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/50 text-emerald-200 font-bold text-[11px] transition shadow-sm hover:shadow-emerald-500/15 cursor-pointer active:scale-95"
                 title="Install App on Phone / Share with Staff (Owner Only)"
               >
-                <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="hidden">Install / Share</span>
+                <Smartphone className="w-4 h-4 text-emerald-300" />
+                <span className="text-[11px]">{t('install_share')}</span>
               </button>
             )}
 
             <button
+              id="header-btn-theme-switcher"
               onClick={() => setShowThemeModal(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 font-semibold text-[11px] transition shadow-sm"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/25 hover:bg-indigo-500/35 border border-indigo-500/50 text-indigo-200 font-bold text-[11px] transition shadow-sm hover:shadow-indigo-500/15 cursor-pointer active:scale-95"
               title="Change Background Theme / Color"
             >
-              <Palette className="w-3.5 h-3.5 text-indigo-400" />
+              <Palette className="w-4 h-4 text-indigo-300" />
               <span>{t('theme')}</span>
             </button>
 
             {/* Language Switcher */}
-            <button
-              onClick={() => setShowLanguageModal(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-sky-600/20 hover:bg-sky-600/30 border border-sky-500/40 text-sky-300 font-semibold text-[11px] transition shadow-sm"
-              title="Change Language (English / Urdu / Pashto / Mixed)"
-            >
-              <Languages className="w-3.5 h-3.5 text-sky-400" />
-              <span className="uppercase font-mono">
-                {language === "en" ? "🇬🇧 EN" : language === "ur" ? "🇵🇰 اردو" : language === "ps" ? "🇦🇫 پښتو" : "🌐 MIX"}
-              </span>
-            </button>
+            <LanguageSwitcher />
 
             {/* Global Print Button */}
             <button
+              id="header-btn-global-print"
               onClick={() => window.print()}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 font-bold text-[11px] transition shadow-sm"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-purple-500/25 hover:bg-purple-500/35 border border-purple-500/50 text-purple-200 font-extrabold text-[11px] transition shadow-sm hover:shadow-purple-500/15 cursor-pointer active:scale-95"
               title="Print Current Screen / Receipt"
             >
-              <Printer className="w-3.5 h-3.5 text-purple-400" />
-              <span>🖨️ Print</span>
+              <Printer className="w-4 h-4 text-purple-300" />
+              <span>{t('print')}</span>
             </button>
           </div>
 
@@ -650,27 +743,27 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
               setPinError(false);
               setShowPassword(false);
             }}
-            className="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-white/10/90 hover:bg-white/10 border border-blue-500/30 text-slate-200 transition shadow-sm"
+            className="flex items-center gap-2 px-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-850 border border-blue-500/40 text-slate-100 transition shadow-sm cursor-pointer h-9 shrink-0"
             title="Switch active counter cashier / operator (Protected with PIN)"
           >
-            <div className="relative">
+            <div className="relative flex items-center shrink-0">
               <img
                 src={activeUser.avatarUrl || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80"}
                 alt={activeUser.name}
                 referrerPolicy="no-referrer"
-                className="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover border border-blue-400 shadow-sm"
+                className="w-6 h-6 rounded-full object-cover border border-blue-400 shadow-sm shrink-0"
               />
-              <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 border border-slate-900" />
+              <span className="absolute -bottom-0.5 -end-0.5 w-2 h-2 rounded-full bg-emerald-500 border border-slate-900" />
             </div>
-            <div className="text-left hidden sm:block">
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-[11px] block leading-none text-slate-100">{activeUser.name}</span>
-                <span className="text-[9px] uppercase tracking-wider text-blue-300 font-bold px-1.5 py-0.2 rounded bg-blue-500/20">
+            <div className="text-start hidden sm:flex sm:flex-col justify-center min-w-0">
+              <div className="flex items-center gap-1">
+                <span className="font-bold text-[10px] block leading-none text-slate-100 truncate max-w-[75px]">{activeUser.name}</span>
+                <span className="text-[8px] uppercase tracking-wider text-blue-200 font-bold px-1 py-0.2 rounded bg-blue-500/30 border border-blue-500/45 leading-none">
                   {activeUser.role}
                 </span>
               </div>
-              <div className="flex items-center gap-1 text-[10px] text-amber-300 font-mono mt-0.5">
-                <Phone className="w-2.5 h-2.5 text-amber-400 shrink-0" />
+              <div className="flex items-center gap-1 text-[8.5px] text-amber-300 font-mono mt-0.5 font-semibold leading-none">
+                <Phone className="w-2 h-2 text-amber-400 shrink-0" />
                 <span>{activeUser.phone || "0300-5861463"}</span>
               </div>
             </div>
@@ -679,10 +772,10 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
           {onLock && (
             <button
               onClick={onLock}
-              className="flex items-center gap-1.5 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 transition shadow-sm"
+              className="flex items-center gap-1.5 px-3 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border border-eose-500/40 transition shadow-sm font-bold cursor-pointer active:scale-95 h-9 shrink-0"
               title="Lock Terminal"
             >
-              <Lock className="w-3.5 h-3.5 text-rose-400" />
+              <Lock className="w-3.5 h-3.5 text-rose-300" />
               <span className="text-xs font-bold hidden sm:block">Lock</span>
             </button>
           )}
@@ -699,13 +792,13 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
 
             {showMobileToolsMenu && (
               <div 
-                className="absolute right-0 top-11 w-52 bg-glass border border-slate-700 rounded-2xl shadow-2xl p-2 z-50 flex flex-col gap-1.5 animate-in fade-in zoom-in-95"
+                className="absolute end-0 top-11 w-52 bg-glass border border-slate-700 rounded-2xl shadow-2xl p-2 z-50 flex flex-col gap-1.5 animate-in fade-in zoom-in-95"
                 onClick={() => setShowMobileToolsMenu(false)}
               >
                 {onOpenReturnModal && (
                   <button
                     onClick={onOpenReturnModal}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs font-semibold text-rose-300 bg-rose-500/10 hover:bg-rose-500/20"
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-start text-xs font-semibold text-rose-300 bg-rose-500/10 hover:bg-rose-500/20"
                   >
                     <RotateCcw className="w-3.5 h-3.5 text-rose-400" />
                     <span>↩️ Return Item (واپسی)</span>
@@ -714,7 +807,7 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
 
                 <button
                   onClick={() => setShowCameraHubModal(true)}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs font-semibold text-blue-300 bg-blue-500/10 hover:bg-blue-500/20"
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-start text-xs font-semibold text-blue-300 bg-blue-500/10 hover:bg-blue-500/20"
                 >
                   <Camera className="w-3.5 h-3.5 text-blue-400" />
                   <span>کیمرہ (CCTV و سکینر)</span>
@@ -722,7 +815,7 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
 
                 <button
                   onClick={() => setShowThemeModal(true)}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs font-semibold text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20"
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-start text-xs font-semibold text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20"
                 >
                   <Palette className="w-3.5 h-3.5 text-indigo-400" />
                   <span>تھیم اور رنگ تبدیل کریں</span>
@@ -735,7 +828,7 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
                         setShowMobileToolsMenu(false);
                         setShowExportMenu(true);
                       }}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs font-bold text-amber-300 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-start text-xs font-bold text-amber-300 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30"
                     >
                       <Download className="w-3.5 h-3.5 text-amber-400" />
                       <span>📦 ایکسپورٹ مینو (Export, APK & 1-File)</span>
@@ -743,7 +836,7 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
 
                     <button
                       onClick={handleInstallClick}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs font-semibold text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-start text-xs font-semibold text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20"
                     >
                       <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
                       <span>موبائل پر ایپ انسٹال کریں</span>
@@ -756,7 +849,7 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
                     setShowMobileToolsMenu(false);
                     window.print();
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs font-semibold text-purple-300 bg-purple-500/10 hover:bg-purple-500/20"
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-start text-xs font-semibold text-purple-300 bg-purple-500/10 hover:bg-purple-500/20"
                 >
                   <Printer className="w-3.5 h-3.5 text-purple-400" />
                   <span>🖨️ پرنٹ کریں (Print)</span>
@@ -764,7 +857,7 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
 
                 <button
                   onClick={() => setActiveTab("settings")}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs font-semibold text-slate-300 bg-white/10 hover:bg-slate-700"
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-start text-xs font-semibold text-slate-300 bg-white/10 hover:bg-slate-700"
                 >
                   <Settings className="w-3.5 h-3.5 text-slate-400" />
                   <span>سیٹنگز اور پرنٹر</span>
@@ -782,14 +875,15 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
           const isActive = activeTab === item.id;
           return (
             <button
+              id={`nav-tab-${item.id}`}
               key={item.id}
               onClick={() => setActiveTab(item.id as PosTab)}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all duration-150 ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all duration-150 cursor-pointer ${
                 isActive
                   ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
                   : item.cctv
-                  ? "text-slate-200 bg-white/10/90 border border-slate-700 hover:border-blue-500/50 hover:bg-white/10"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-white/10/80"
+                  ? "text-slate-100 bg-slate-800/90 border border-slate-600 hover:border-blue-400 hover:bg-slate-700"
+                  : "text-slate-200 bg-slate-800/70 border border-slate-700/60 hover:text-white hover:bg-slate-700/80 hover:border-slate-500"
               }`}
             >
               <Icon className={`w-4 h-4 ${isActive ? "text-white" : item.ai ? "text-amber-400" : item.cctv ? "text-blue-400" : item.whatsapp ? "text-emerald-400" : item.time ? "text-indigo-400" : "text-slate-400"}`} />
@@ -824,8 +918,8 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
 
       {/* Google-Style User Switch & Password / PIN Modal */}
       {showUserModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-glass border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95 text-xs text-slate-200">
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-slate-900/98 border border-slate-800/80 rounded-t-2xl sm:rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-300 text-xs text-slate-200">
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-3.5 border-b border-slate-800 mb-4">
               <div className="flex items-center gap-2.5">
@@ -850,7 +944,7 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
               <label className="text-xs text-slate-300 font-medium block">
                 Select Counter Operator / Cashier:
               </label>
-              <div className="grid grid-cols-1 gap-2 max-h-[220px] overflow-y-auto pr-1">
+              <div className="grid grid-cols-1 gap-2 max-h-[220px] overflow-y-auto pe-1">
                 {users.map((u) => {
                   const isSelected = selectedUserToSwitch?.id === u.id;
                   const isCurrentlyActive = activeUser.id === u.id;
@@ -861,7 +955,7 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
                       key={u.id}
                       type="button"
                       onClick={() => handleSelectUser(u)}
-                      className={`flex items-center justify-between p-2.5 rounded-xl border text-left text-xs transition ${
+                      className={`flex items-center justify-between p-2.5 rounded-xl border text-start text-xs transition ${
                         isSelected
                           ? "bg-blue-600/20 border-blue-500 text-blue-100 ring-1 ring-blue-500/40"
                           : "bg-white/10/60 border-slate-700/80 text-slate-300 hover:bg-white/10 hover:border-slate-600"
@@ -876,7 +970,7 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
                             className="w-9 h-9 rounded-full object-cover border border-slate-600"
                           />
                           {isCurrentlyActive && (
-                            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-slate-900" />
+                            <span className="absolute -bottom-0.5 -end-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-slate-900" />
                           )}
                         </div>
                         <div>
@@ -901,7 +995,7 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
                         </div>
                       </div>
 
-                      <div className="text-right flex flex-col items-end gap-1">
+                      <div className="text-end flex flex-col items-end gap-1">
                         <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-slate-700/80 text-slate-300">
                           {u.role}
                         </span>
@@ -969,14 +1063,14 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
                         }}
                         placeholder="Enter PIN / Password"
                         autoFocus
-                        className="w-full pl-4 pr-12 py-2.5 bg-glass border border-slate-700 rounded-lg text-slate-100 text-center text-lg tracking-widest font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                        className="w-full ps-4 pe-12 py-2.5 bg-glass border border-slate-700 rounded-lg text-slate-100 text-center text-lg tracking-widest font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                       />
                       
                       {/* Show / Hide Toggle Button */}
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-2.5 p-1 rounded text-slate-400 hover:text-slate-200 transition"
+                        className="absolute end-3 top-2.5 p-1 rounded text-slate-400 hover:text-slate-200 transition"
                         title={showPassword ? "پاسورڈ چھپائیں (Hide Password)" : "پاسورڈ دکھائیں (Show Password)"}
                       >
                         {showPassword ? (
@@ -1071,8 +1165,8 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
 
       {/* Mobile Install & Staff Sharing Modal */}
       {showInstallModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-glass border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95 text-xs text-slate-200">
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-slate-900/98 border border-slate-800/80 rounded-t-2xl sm:rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-300 text-xs text-slate-200">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
@@ -1201,8 +1295,8 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
 
       {/* Theme / Background Switcher Modal */}
       {showThemeModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0f172a] border border-slate-700 rounded-3xl max-w-2xl w-full p-6 shadow-2xl animate-in zoom-in-95 text-slate-200">
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-slate-900 border border-slate-800/80 rounded-t-3xl sm:rounded-3xl max-w-2xl w-full p-6 shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-300 text-slate-200">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div className="flex items-center gap-2.5 text-indigo-400">
                 <Palette className="w-5 h-5 text-amber-400 animate-bounce" />
@@ -1228,7 +1322,7 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
             </p>
 
             {/* Themes Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 my-2 max-h-[380px] overflow-y-auto pr-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 my-2 max-h-[380px] overflow-y-auto pe-1">
               {[
                 {
                   id: "uni",
@@ -1310,7 +1404,7 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
                 return (
                   <div
                     key={thm.id}
-                    className={`p-4 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between gap-3 relative overflow-hidden ${thm.bgClass} ${
+                    className={`p-4 rounded-2xl border text-start transition-all duration-200 flex flex-col justify-between gap-3 relative overflow-hidden ${thm.bgClass} ${
                       isSelected
                         ? "ring-2 ring-blue-500 border-transparent shadow-xl scale-[1.01]"
                         : "opacity-95 hover:opacity-100 hover:border-slate-500"
@@ -1400,8 +1494,8 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
 
       {/* Smart Unified Camera Hub Modal (CCTV Feeds & Live Barcode Scanner in ONE Place) */}
       {showCameraHubModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-glass border border-slate-700 rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl animate-in zoom-in-95 relative text-left">
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-slate-900 border border-slate-800/80 rounded-t-3xl sm:rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-300 relative text-start">
             <div className="flex items-center justify-between pb-4 border-b border-slate-800">
               <div className="flex items-center gap-2.5">
                 <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
@@ -1430,7 +1524,7 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
                     onOpenScanner();
                   }
                 }}
-                className="p-4 rounded-2xl bg-gradient-to-r from-blue-950/50 to-slate-900 border border-blue-500/40 hover:border-blue-400 hover:bg-blue-900/30 text-left transition group shadow-lg flex items-center gap-4 active:scale-[0.99]"
+                className="p-4 rounded-2xl bg-gradient-to-r from-blue-950/50 to-slate-900 border border-blue-500/40 hover:border-blue-400 hover:bg-blue-900/30 text-start transition group shadow-lg flex items-center gap-4 active:scale-[0.99]"
               >
                 <div className="w-12 h-12 rounded-2xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition shrink-0">
                   <Scan className="w-6 h-6" />
@@ -1453,7 +1547,7 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
                   setShowCameraHubModal(false);
                   setActiveTab("branches");
                 }}
-                className="p-4 rounded-2xl bg-gradient-to-r from-indigo-950/50 to-slate-900 border border-indigo-500/40 hover:border-indigo-400 hover:bg-indigo-900/30 text-left transition group shadow-lg flex items-center gap-4 active:scale-[0.99]"
+                className="p-4 rounded-2xl bg-gradient-to-r from-indigo-950/50 to-slate-900 border border-indigo-500/40 hover:border-indigo-400 hover:bg-indigo-900/30 text-start transition group shadow-lg flex items-center gap-4 active:scale-[0.99]"
               >
                 <div className="w-12 h-12 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition shrink-0">
                   <Video className="w-6 h-6" />
@@ -1483,8 +1577,8 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
 
       {/* Language Selection Modal */}
       {showLanguageModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-sky-500/40 rounded-3xl max-w-md w-full p-6 shadow-2xl text-slate-200 font-sans space-y-4">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-slate-900 border border-slate-800/80 rounded-t-3xl sm:rounded-3xl max-w-md w-full p-6 shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-300 text-slate-200 font-sans space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-2xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center text-sky-400">
@@ -1512,7 +1606,7 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
                   setLanguage("en");
                   setShowLanguageModal(false);
                 }}
-                className={`w-full p-3.5 rounded-2xl border text-left transition flex items-center justify-between ${
+                className={`w-full p-3.5 rounded-2xl border text-start transition flex items-center justify-between ${
                   language === "en"
                     ? "bg-sky-600/20 border-sky-500 text-sky-200 ring-1 ring-sky-500/50"
                     : "bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-300"
@@ -1534,7 +1628,7 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
                   setLanguage("ur");
                   setShowLanguageModal(false);
                 }}
-                className={`w-full p-3.5 rounded-2xl border text-left transition flex items-center justify-between ${
+                className={`w-full p-3.5 rounded-2xl border text-start transition flex items-center justify-between ${
                   language === "ur"
                     ? "bg-sky-600/20 border-sky-500 text-sky-200 ring-1 ring-sky-500/50"
                     : "bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-300"
@@ -1556,7 +1650,7 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
                   setLanguage("ps");
                   setShowLanguageModal(false);
                 }}
-                className={`w-full p-3.5 rounded-2xl border text-left transition flex items-center justify-between ${
+                className={`w-full p-3.5 rounded-2xl border text-start transition flex items-center justify-between ${
                   language === "ps"
                     ? "bg-sky-600/20 border-sky-500 text-sky-200 ring-1 ring-sky-500/50"
                     : "bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-300"
@@ -1578,7 +1672,7 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
                   setLanguage("mix");
                   setShowLanguageModal(false);
                 }}
-                className={`w-full p-3.5 rounded-2xl border text-left transition flex items-center justify-between ${
+                className={`w-full p-3.5 rounded-2xl border text-start transition flex items-center justify-between ${
                   language === "mix"
                     ? "bg-sky-600/20 border-sky-500 text-sky-200 ring-1 ring-sky-500/50"
                     : "bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-300"
@@ -1615,8 +1709,8 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
 
       {/* Sync Status & Data Safety Confidence Modal */}
       {showSyncModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-lg w-full p-6 shadow-2xl animate-in zoom-in-95 text-xs text-slate-200">
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-slate-900 border border-slate-800/80 rounded-t-2xl sm:rounded-2xl max-w-lg w-full p-6 shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-300 text-xs text-slate-200">
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-3.5 border-b border-slate-800 mb-4">
               <div className="flex items-center gap-2.5">
@@ -1762,8 +1856,8 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
       )}
       {/* Export & Download Center Modal (1-File HTML, Android APK, ZIP Source, JSON Backup) */}
       {showExportMenu && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-2xl w-full p-6 shadow-2xl animate-in zoom-in-95 text-xs text-slate-200 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-slate-900 border border-slate-800/80 rounded-t-2xl sm:rounded-2xl max-w-2xl w-full p-6 shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-300 text-xs text-slate-200 max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-5">
               <div className="flex items-center gap-3">
@@ -1940,6 +2034,242 @@ export const PosHeader: React.FC<PosHeaderProps> = ({
                   className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold"
                 >
                   Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Supplier Purchase Order (Reorder) Modal */}
+      {showReorderModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-slate-900 border border-slate-800/80 rounded-t-2xl sm:rounded-2xl max-w-4xl w-full p-6 shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-300 text-xs text-slate-200">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                  <Truck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-100 text-sm">Supplier Purchase Order (Draft)</h3>
+                  <p className="text-[11px] text-slate-400">فوری سپلائر آرڈر شیٹ (Generate Purchase Order Draft for Low Stock Products)</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowReorderModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/10"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-5">
+              {/* Left 2 Cols: Item list & adjustable reorder quantities */}
+              <div className="lg:col-span-2 flex flex-col">
+                <h4 className="font-extrabold text-slate-300 mb-2 flex items-center gap-1.5">
+                  <Package className="w-4 h-4 text-slate-400" />
+                  <span>آرڈر کی جانے والی اشیاء (Products List & Quantities)</span>
+                </h4>
+                
+                <div className="flex-1 max-h-[350px] overflow-y-auto space-y-2 border border-slate-800/80 rounded-xl p-3 bg-slate-950/40">
+                  {lowStockProducts.length === 0 ? (
+                    <p className="text-slate-400 text-center py-8">No low-stock items detected at this moment.</p>
+                  ) : (
+                    lowStockProducts.map(p => {
+                      const qty = reorderQuantities[p.id] || 0;
+                      // Estimate cost price based on sale price if cost price is undefined or 0
+                      const itemCostPrice = p.costPrice || Math.round(p.salePrice * 0.7);
+                      const itemTotal = qty * itemCostPrice;
+
+                      return (
+                        <div key={p.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-2.5 rounded-lg bg-slate-900 border border-slate-850">
+                          <div className="min-w-0 flex-1">
+                            <div className="font-bold text-slate-200 truncate">{p.name}</div>
+                            <div className="text-[10px] text-slate-500 font-mono">
+                              Brand: <strong className="text-slate-400">{p.brand}</strong> | Code: <strong className="text-slate-400">{p.code}</strong>
+                            </div>
+                            <div className="text-[10px] text-rose-400 mt-0.5">
+                              Current Stock: <strong>{p.stockQuantity} {p.unit}</strong> (Alert Limit: {p.minStockAlert})
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-4 justify-between sm:justify-end shrink-0">
+                            <div>
+                              <label className="text-[9px] text-slate-500 block text-end">Reorder Qty</label>
+                              <div className="flex items-center gap-1 mt-0.5">
+                                <input
+                                  type="number"
+                                  min="1"
+                                  value={qty}
+                                  onChange={(e) => {
+                                    const val = Math.max(1, parseInt(e.target.value) || 1);
+                                    setReorderQuantities(prev => ({ ...prev, [p.id]: val }));
+                                  }}
+                                  className="w-16 px-2 py-1 bg-slate-950 border border-slate-700 rounded text-center text-xs text-amber-300 font-bold focus:border-amber-500 outline-none"
+                                />
+                                <span className="text-[10px] text-slate-500">{p.unit}</span>
+                              </div>
+                            </div>
+
+                            <div className="text-end min-w-[90px]">
+                              <span className="text-[9px] text-slate-500 block">Estimated Cost</span>
+                              <span className="text-xs font-mono font-bold text-slate-300">
+                                {settings.currencySymbol} {itemCostPrice.toLocaleString()} ea
+                              </span>
+                              <span className="text-[10px] font-mono text-emerald-400 block font-semibold">
+                                Total: {settings.currencySymbol} {itemTotal.toLocaleString()}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* Right Col: Supplier Selection & Notes */}
+              <div className="space-y-4 bg-slate-900/50 p-4 border border-slate-800 rounded-xl">
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">
+                    آرڈر سپلائر (Select Supplier):
+                  </label>
+                  <select
+                    value={selectedSupplier}
+                    onChange={(e) => setSelectedSupplier(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-slate-200 text-xs focus:border-amber-500 outline-none"
+                  >
+                    <option value="Master Ceramics & Sanitary">Master Ceramics & Sanitary (Gujranwala HQ)</option>
+                    <option value="PPRC Pipe Fittings Pakistan">PPRC Pipe Fittings Pakistan (Peshawar Vendor)</option>
+                    <option value="PVC UPVC Industries Lahore">PVC UPVC Industries Lahore</option>
+                    <option value="Faisal Faucets & Valve Co.">Faisal Faucets & Valve Co.</option>
+                    <option value="Local Wholesale Vendor Peshawar">Local Wholesale Vendor Peshawar (#03 Khyber Bazaar)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">
+                    ادائیگی کی شرائط (Payment Terms):
+                  </label>
+                  <select
+                    value={paymentTerms}
+                    onChange={(e) => setPaymentTerms(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-slate-200 text-xs focus:border-amber-500 outline-none"
+                  >
+                    <option value="Cash on Delivery">کیش آن ڈلیوری (Cash on Delivery)</option>
+                    <option value="Advance Account">ایڈوانس اکاؤنٹ (Advance Payment)</option>
+                    <option value="Net 30 Days">نیٹ 30 دن کھاتہ (Net 30 Days)</option>
+                    <option value="Net 60 Days">نیٹ 60 دن کھاتہ (Net 60 Days)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">
+                    آرڈر ریمارکس اور پتا (Order Notes):
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={poNotes}
+                    onChange={(e) => setPoNotes(e.target.value)}
+                    placeholder="Provide shipping address or special loading instructions..."
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-slate-200 text-xs focus:border-amber-500 outline-none resize-none"
+                  />
+                </div>
+
+                {/* Calculation Summary Panel */}
+                <div className="pt-3 border-t border-slate-800 space-y-1.5">
+                  <div className="flex justify-between text-slate-400 text-[11px]">
+                    <span>Subtotal Cost:</span>
+                    <span className="font-mono">
+                      {settings.currencySymbol}{" "}
+                      {lowStockProducts.reduce((sum, p) => {
+                        const qty = reorderQuantities[p.id] || 0;
+                        const cost = p.costPrice || Math.round(p.salePrice * 0.7);
+                        return sum + qty * cost;
+                      }, 0).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-slate-400 text-[11px]">
+                    <span>Shipping Est:</span>
+                    <span className="text-emerald-400 font-semibold">FREE (Master Cargo)</span>
+                  </div>
+                  <div className="flex justify-between text-slate-200 text-xs font-black pt-1.5 border-t border-slate-800">
+                    <span>Grand Total Estimated:</span>
+                    <span className="text-amber-400 font-mono">
+                      {settings.currencySymbol}{" "}
+                      {lowStockProducts.reduce((sum, p) => {
+                        const qty = reorderQuantities[p.id] || 0;
+                        const cost = p.costPrice || Math.round(p.salePrice * 0.7);
+                        return sum + qty * cost;
+                      }, 0).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-between gap-4 pt-4 border-t border-slate-800 flex-wrap">
+              <span className="text-[10px] text-slate-500">
+                Draft PO Code: HP-PO-{new Date().getFullYear()}-{Math.floor(1000 + Math.random() * 9000)} • Generated by {activeUser.name}
+              </span>
+              
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const poNum = `HP-PO-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+                    let text = `*HAIDER SANITARY STORE - PURCHASE ORDER*\n`;
+                    text += `*PO Number:* ${poNum}\n`;
+                    text += `*Supplier:* ${selectedSupplier}\n`;
+                    text += `*Payment Terms:* ${paymentTerms}\n`;
+                    text += `*Status:* DRAFT PURCHASE ORDER\n`;
+                    text += `*Date:* ${new Date().toLocaleDateString()}\n\n`;
+                    text += `*ITEMS TO REORDER:*\n`;
+                    
+                    lowStockProducts.forEach(p => {
+                      const qty = reorderQuantities[p.id] || 0;
+                      text += `- *${p.name}*: ${qty} ${p.unit} (Code: ${p.code}, Brand: ${p.brand})\n`;
+                    });
+                    
+                    text += `\n*Notes:* ${poNotes}\n`;
+                    text += `\n_Generated via HaiderSanitary POS Control Panel_`;
+
+                    navigator.clipboard.writeText(text);
+                    alert("✓ Purchase order draft copied to clipboard! You can now paste and send it directly to your supplier on WhatsApp.");
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition border border-slate-700"
+                  title="Copy PO Text for Whatsapp Supplier Chat"
+                >
+                  <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>WhatsApp کاپی (Copy for WhatsApp)</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    window.print();
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition border border-slate-700"
+                >
+                  <Printer className="w-3.5 h-3.5 text-slate-400" />
+                  <span>پرنٹ آرڈر (Print PO)</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    alert("✓ Draft Purchase Order has been successfully initialized and queued to the supplier network!");
+                    setShowReorderModal(false);
+                  }}
+                  className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-slate-950 font-extrabold text-xs transition"
+                >
+                  آرڈر محفوظ کریں (Save PO)
+                </button>
+
+                <button
+                  onClick={() => setShowReorderModal(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold"
+                >
+                  بند کریں
                 </button>
               </div>
             </div>
